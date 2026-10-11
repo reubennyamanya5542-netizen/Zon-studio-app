@@ -1257,7 +1257,7 @@ async function verifyZip(blob, expectW, expectH, expectNames) {
 async function getDownloads() { try { return window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch { return null; } }
 /* Android app (Capacitor): files are staged in the app cache and handed to the system share sheet. */
 const NATIVE = () => { try { return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()); } catch { return false; } };
-const PLUGS = {}; const plug = n => PLUGS[n] || (PLUGS[n] = window.Capacitor.registerPlugin(n));
+const PLUGS = {}; const plug = n => { if (PLUGS[n]) return PLUGS[n]; const C = window.Capacitor; const p = (C && typeof C.registerPlugin === 'function') ? C.registerPlugin(n) : (C && C.Plugins && C.Plugins[n]); if (!p) throw new Error('Plugin ' + n + ' is not available in this app build'); return (PLUGS[n] = p); };
 const blobToB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.onerror = () => rej(r.error || new Error('Could not read the file.')); r.readAsDataURL(blob); });
 async function nativeShare(items, title) {
   const fs = plug('Filesystem'), uris = [];
@@ -1369,7 +1369,7 @@ function openExport() {
     msg = h('div');
     const shareAll = NATIVE() && r.files && r.files.length > 1 ? h('button', { type: 'button', class: 'btn block', html: ic('share', 18) + `<span>Share all ${r.files.length} images</span>`, onclick: async () => { msg.textContent = ''; try { await nativeShare(r.files.map(f => ({ blob: f.blob, filename: f.name })), 'Zon Studio slides'); msg.append(h('div', { class: 'okbox' }, 'Sent to your chosen destination.')); } catch (e) { msg.append(h('div', { class: 'err' }, errMsg(e))); } } }) : null;
     const canShare = typeof navigator !== 'undefined' && navigator.canShare && (() => { try { return navigator.canShare({ files: [new File([r.blob], r.filename, { type: r.blob.type })] }); } catch { return false; } })();
-    host.append(
+    host.append(...[
       h('div', { class: 'okbox' }, h('b', null, r.count === 1 ? 'Image ready' : `${r.count} images ready`), h('div', null, `${r.filename} · ${(r.blob.size / 1048576).toFixed(2)} MB`),
         r.check ? h('div', { style: { color: 'var(--ok)', marginTop: '4px' } }, `Checked: all ${r.check.length} images open at ${P.w} × ${P.h}.`) : null),
       r.check ? h('div', { class: 'list' }, r.check.map(c => h('div', null, h('span', null, c.name), h('span', null, (c.size / 1024).toFixed(0) + ' KB')))) : null,
@@ -1377,7 +1377,7 @@ function openExport() {
       shareAll,
       canShare ? h('button', { type: 'button', class: 'btn block', html: ic('share', 18) + '<span>Share…</span>', onclick: async () => { try { await navigator.share({ files: [new File([r.blob], r.filename, { type: r.blob.type })], title: r.filename }); } catch (e) { if (e && e.name !== 'AbortError') msg.append(h('div', { class: 'err' }, 'Sharing failed: ' + (e.message || 'unknown error'))); } } }) : null,
       msg,
-      h('button', { type: 'button', class: 'btn block', onclick: () => { st.result = null; draw(); } }, 'Export again'));
+      h('button', { type: 'button', class: 'btn block', onclick: () => { st.result = null; draw(); } }, 'Export again')].filter(Boolean));
   };
   draw();
 }

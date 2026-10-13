@@ -96,6 +96,10 @@ input.text{width:100%;height:36px;background:var(--panel-2);border:1px solid var
 .sw{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 .swc{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);flex:none}
 .swc.on{border-color:var(--ink)}
+.cmem{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.cmem .swc.pin{border-color:var(--accent)}
+.cmem .addb{padding:4px 10px;border-radius:999px;border:1px dashed var(--line);font-size:12px;color:var(--mute);background:transparent}
+.cmem .lab2{font-size:11px;color:var(--mute);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .swc.wheel{background:conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);border-color:var(--line)}
 .cwrap{position:relative;width:260px;height:260px;margin:8px auto}
 .cwheel{display:block;border-radius:50%;touch-action:none;cursor:crosshair}
@@ -327,10 +331,11 @@ const FADES = [['#000000', '#000000', 180, 0, 0.85, 'Clear to dark, top to botto
 const CHECKER = 'repeating-conic-gradient(#c3c7cf 0 25%, #eef0f4 0 50%)';
 const pct = v => Math.round(v * 100) + '%';
 const SIZES = [
-  { n: 'Square', r: '1:1', w: 1080, h: 1080 }, { n: 'Portrait', r: '4:5', w: 1080, h: 1350 },
+  { n: 'Square', r: '1:1', w: 1080, h: 1080 }, { n: 'LinkedIn carousel', r: '4:5', w: 1080, h: 1350 },
   { n: 'Portrait', r: '3:4', w: 1080, h: 1440 }, { n: 'Story', r: '9:16', w: 1080, h: 1920 },
-  { n: 'Landscape', r: '16:9', w: 1920, h: 1080 }, { n: 'Link post', r: '1.91:1', w: 1200, h: 628 },
-  { n: 'Tall', r: '2:3', w: 1000, h: 1500 }, { n: 'Cover', r: '820×312', w: 1640, h: 624 }
+  { n: 'Landscape', r: '16:9', w: 1920, h: 1080 }, { n: 'LinkedIn post', r: '1.91:1', w: 1200, h: 628 },
+  { n: 'Tall', r: '2:3', w: 1000, h: 1500 }, { n: 'Cover', r: '820×312', w: 1640, h: 624 },
+  { n: 'LinkedIn banner', r: '4:1', w: 1584, h: 396 }
 ];
 const STICKERS = [
   { id: 'bolt', n: 'Bolt', d: 'M13 2L4 14h6l-1 8 9-12h-6z' },
@@ -1105,6 +1110,35 @@ const hex2rgb = hx => { const n = parseInt(hx.slice(1), 16); return [n >> 16, (n
 const rgb2hex = (r, g, b) => '#' + [r, g, b].map(v => clamp(Math.round(v), 0, 255).toString(16).padStart(2, '0')).join('');
 function rgb2hsv(r, g, b) { r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let hh = 0; if (d) { if (mx === r) hh = ((g - b) / d) % 6; else if (mx === g) hh = (b - r) / d + 2; else hh = (r - g) / d + 4; hh *= 60; if (hh < 0) hh += 360; } return [hh, mx ? d / mx : 0, mx]; }
 function hsv2rgb(hh, sa, v) { const c = v * sa, x = c * (1 - Math.abs((hh / 60) % 2 - 1)), m = v - c; let r = 0, g = 0, b = 0; if (hh < 60) [r, g, b] = [c, x, 0]; else if (hh < 120) [r, g, b] = [x, c, 0]; else if (hh < 180) [r, g, b] = [0, c, x]; else if (hh < 240) [r, g, b] = [0, x, c]; else if (hh < 300) [r, g, b] = [x, 0, c]; else [r, g, b] = [c, 0, x]; return [(r + m) * 255, (g + m) * 255, (b + m) * 255]; }
+/* remembered colours: recent ones are kept automatically, brand colours are pinned by the user */
+const COL_KEY = 'zon-colors';
+const isHex6 = c => /^#[0-9a-f]{6}$/i.test(String(c));
+const colMem = (() => { const d = { recent: [], brand: [] }; try { const j = JSON.parse(localStorage.getItem(COL_KEY) || '{}'); if (Array.isArray(j.recent)) d.recent = j.recent.filter(isHex6).slice(0, 14); if (Array.isArray(j.brand)) d.brand = j.brand.filter(isHex6).slice(0, 16); } catch { /* no saved colours */ } return d; })();
+const MEMBOXES = new Set();
+const saveColMem = () => { try { localStorage.setItem(COL_KEY, JSON.stringify(colMem)); } catch { /* storage unavailable */ } MEMBOXES.forEach(b => { if (b.isConnected) b.redraw(); else MEMBOXES.delete(b); }); };
+function rememberColor(c) { c = String(c).toLowerCase(); if (!isHex6(c)) return; colMem.recent = [c, ...colMem.recent.filter(x => x !== c)].slice(0, 14); saveColMem(); }
+function pinColor(c) { c = String(c).toLowerCase(); if (!isHex6(c)) return false; if (colMem.brand.includes(c)) return false; colMem.brand = [...colMem.brand, c].slice(-16); saveColMem(); return true; }
+function unpinColor(c) { colMem.brand = colMem.brand.filter(x => x !== c); saveColMem(); }
+/* returns an element with Recent and Brand rows. apply(hex) is called when a dot is tapped; getCur() gives the colour to pin. */
+function colorMemory(getCur, apply) {
+  const box = h('div', { class: 'cmem' });
+  const dot = (c, brand) => {
+    const b = h('button', { type: 'button', class: 'swc' + (brand ? ' pin' : ''), style: { background: c }, 'aria-label': (brand ? 'Brand colour ' : 'Recent colour ') + c, title: brand ? 'Tap to use. Press and hold to remove.' : 'Tap to use' });
+    let t = 0, held = false;
+    b.addEventListener('pointerdown', () => { held = false; if (!brand) return; t = setTimeout(() => { held = true; unpinColor(c); draw(); toast('Removed from brand colours'); }, 600); });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => b.addEventListener(ev, () => clearTimeout(t)));
+    b.addEventListener('click', () => { if (held) { held = false; return; } apply(c); });
+    return b;
+  };
+  const draw = () => {
+    box.textContent = '';
+    box.append(h('div', { class: 'lab2' }, h('span', null, 'Brand colours'), h('button', { type: 'button', class: 'addb', onclick: () => { const c = String(getCur()).toLowerCase(); if (!isHex6(c)) return; if (pinColor(c)) toast('Saved to brand colours'); else toast('Already in your brand colours'); draw(); } }, '+ Save this colour')));
+    box.append(colMem.brand.length ? h('div', { class: 'sw' }, colMem.brand.map(c => dot(c, true))) : h('p', { class: 'tinyp' }, 'Tap “+ Save this colour” to keep colours you always use.'));
+    if (colMem.recent.length) box.append(h('div', { class: 'lab2' }, 'Recently used'), h('div', { class: 'sw' }, colMem.recent.map(c => dot(c, false))));
+  };
+  draw(); box.redraw = draw; MEMBOXES.add(box);
+  return box;
+}
 /* colour wheel with brightness, opacity, hex entry. onApply({ c: '#rrggbb', a: 0..1 }) */
 function openColorPicker(o, onApply) {
   let [H, SA, V] = rgb2hsv(...hex2rgb(o.color || '#ffffff')), A = o.alpha ?? 1; const withAlpha = o.withAlpha !== false;
@@ -1143,9 +1177,10 @@ function openColorPicker(o, onApply) {
   hexIn.addEventListener('input', () => { const t = hexIn.value.trim().replace(/^#?/, '#'); if (/^#[0-9a-f]{6}$/i.test(t)) { [H, SA, V] = rgb2hsv(...hex2rgb(t.toLowerCase())); upd(true, true); } });
   const m = modal(o.title || 'Colour', h('div', null,
     h('div', { class: 'chead' }, prev, hexIn), wrapW,
+    colorMemory(() => cur(), c => { [H, SA, V] = rgb2hsv(...hex2rgb(c)); upd(true); }),
     h('div', { class: 'clab' }, 'Brightness'), vSl,
     withAlpha ? h('div', { class: 'clab' }, 'Opacity (see-through)') : null, withAlpha ? aSl : null,
-    h('div', { class: 'cact' }, h('button', { type: 'button', class: 'btn', onclick: () => m.close() }, 'Cancel'), h('button', { type: 'button', class: 'btn primary', onclick: () => { onApply({ c: cur(), a: withAlpha ? A : 1 }); m.close(); } }, 'OK'))), { sticky: true });
+    h('div', { class: 'cact' }, h('button', { type: 'button', class: 'btn', onclick: () => m.close() }, 'Cancel'), h('button', { type: 'button', class: 'btn primary', onclick: () => { rememberColor(cur()); onApply({ c: cur(), a: withAlpha ? A : 1 }); m.close(); } }, 'OK'))), { sticky: true });
   drawWheel(); upd(false);
 }
 /* gradient editor: any number of colour stops, each with its own colour and opacity */
@@ -1212,10 +1247,12 @@ function colorField(label, get, set) {
   const sws = SWATCHES.map(c => h('button', { type: 'button', class: 'swc', style: { background: c }, 'aria-label': c, onclick: () => { set(c); inp.value = c; commit(); render(); refreshThumbs(); markSw(); } }));
   const markSw = () => sws.forEach((b, i) => b.classList.toggle('on', SWATCHES[i].toLowerCase() === String(get()).toLowerCase()));
   inp.addEventListener('input', () => { set(inp.value); render(); markSw(); commitSoon(); });
-  inp.addEventListener('change', () => { commit(); refreshThumbs(); });
+  let mem = null;
+  inp.addEventListener('change', () => { rememberColor(inp.value); if (mem) mem.redraw(); commit(); refreshThumbs(); });
   markSw();
   const wb = h('button', { type: 'button', class: 'swc wheel', 'aria-label': (label || 'Colour') + ': open colour wheel', title: 'Colour wheel', onclick: () => openColorPicker({ title: label || 'Colour', color: get(), withAlpha: false }, r => { set(r.c); inp.value = r.c; commit(); render(); refreshThumbs(); markSw(); }) });
-  return h('div', { class: 'fld' }, label ? h('label', null, label) : null, h('div', { class: 'sw' }, inp, wb, sws));
+  mem = colorMemory(() => get(), c => { set(c); inp.value = c; commit(); render(); refreshThumbs(); markSw(); });
+  return h('div', { class: 'fld' }, label ? h('label', null, label) : null, h('div', { class: 'sw' }, inp, wb, sws), mem);
 }
 const act = (icon, label, fn, cls = '') => h('button', { type: 'button', class: 'chip ' + cls, onclick: fn, html: ic(icon, 16) + `<span>${label}</span>` });
 
@@ -1230,6 +1267,8 @@ function buildPanel() {
   const pn = $('#panel'); live = null;
   if (S.panel !== 'object') S.erase = false;
   const keepScroll = pn.querySelector('.pbody') ? pn.querySelector('.pbody').scrollTop : 0;
+  const panKey = `${S.panel}|${S.tab}|${S.selId}`, keepH = pn.dataset.key === panKey ? [...pn.querySelectorAll('.pbody .fonts')].map(e => e.scrollLeft) : [];
+  if (S.resetRow != null) { keepH[S.resetRow] = 0; S.resetRow = null; }
   pn.textContent = '';
   if (!S.panel) { pn.hidden = true; syncTools(); return; }
   pn.hidden = false;
@@ -1249,7 +1288,8 @@ function buildPanel() {
     tabs ? h('div', { class: 'tabs', role: 'tablist' }, tabs.map(t => h('button', { type: 'button', role: 'tab', class: 'tab' + (t === S.tab ? ' on' : ''), onclick: () => { S.tab = t; buildPanel(); }, 'aria-selected': t === S.tab }, t))) : h('div', { class: 'tabs' }, h('div', { class: 'ptitle' }, title)),
     close);
   const pb = h('div', { class: 'pbody' }, body);
-  pn.append(top, pb); pb.scrollTop = keepScroll;
+  pn.append(top, pb); pb.scrollTop = keepScroll; pn.dataset.key = panKey;
+  pb.querySelectorAll('.fonts').forEach((e, i) => { if (keepH[i]) e.scrollLeft = keepH[i]; });
   const act = $('.tab.on', pn); if (act) act.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   syncTools();
 }
@@ -1408,7 +1448,7 @@ const BODIES = {
       const cur = S.fontCat && cats.includes(S.fontCat) ? S.fontCat : catOf(o.font);
       const names = cur === 'Recent' ? rec : cur === 'Yours' ? P.fonts.map(f => f.name) : FONT_CATS[cur] || [];
       const chips = names.map(n => h('button', { type: 'button', class: 'fchip' + (n === o.font ? ' on' : ''), onclick: () => { o.font = n; pushRecent(n); LAYOUT.clear(); ensureFont(o); commit(); render(); refreshThumbs(); buildPanel(); } }, h('b', { style: { fontFamily: fontFamily(n) } }, 'Aa Bb'), h('small', null, n)));
-      return [h('div', { class: 'fonts' }, cats.map(c => h('button', { type: 'button', class: 'chip' + (c === cur ? ' on' : ''), onclick: () => { S.fontCat = c; buildPanel(); } }, c))),
+      return [h('div', { class: 'fonts' }, cats.map(c => h('button', { type: 'button', class: 'chip' + (c === cur ? ' on' : ''), onclick: () => { S.fontCat = c; S.resetRow = 1; buildPanel(); } }, c))),
         h('div', { class: 'fonts' }, chips),
         h('div', { class: 'row' }, act('upload', 'Import font file', () => $('#fFont').click()), h('div', { class: 'seg' }, h('button', { type: 'button', 'aria-label': 'Bold', class: o.bold ? 'on' : '', onclick: () => { o.bold = !o.bold; commit(); render(); buildPanel(); refreshThumbs(); } }, h('b', null, 'B')), h('button', { type: 'button', 'aria-label': 'Italic', class: o.italic ? 'on' : '', onclick: () => { o.italic = !o.italic; commit(); render(); buildPanel(); refreshThumbs(); } }, h('i', null, 'I')))),
         h('p', { class: 'tinyp' }, `${Object.values(FONT_CATS).flat().length} free fonts (Open Font License). Got a font from dafont or elsewhere? Import the file, and check its licence before publishing work that uses it.`)];
@@ -1419,13 +1459,13 @@ const BODIES = {
       let sel = [0, 0]; const cap = () => { sel = [box.selectionStart, box.selectionEnd]; };
       ['select', 'pointerup', 'keyup', 'touchend', 'mouseup', 'blur'].forEach(ev => box.addEventListener(ev, cap));
       const paintSel = c => { if (sel[1] <= sel[0]) { toast('Select some letters in the box first: press and hold, then drag.'); return; } setRun(o, sel[0], sel[1], c); commit(); render(); refreshThumbs(); toast('Letter colour applied'); };
-      const cust = h('input', { type: 'color', value: '#ff4d4f', 'aria-label': 'Custom letter colour' }); cust.addEventListener('change', () => paintSel(cust.value));
+      const cust = h('input', { type: 'color', value: '#ff4d4f', 'aria-label': 'Custom letter colour' }); cust.addEventListener('change', () => { rememberColor(cust.value); paintSel(cust.value); });
       return [colorField('Text colour', () => o.color, v => { o.color = v; }),
         o.grad.on ? h('p', { class: 'empty' }, 'Gradient fill is on, so this colour is hidden. Turn gradient off in the Gradient tab to see it.') : null,
         toggle('Hollow letters (use Stroke tab for the outline)', o.hollow, v => { o.hollow = v; commit(); render(); refreshThumbs(); }),
         h('div', { class: 'fld' }, h('label', null, 'Colour only some letters'), box),
         h('div', { class: 'row' }, act('check', 'Select all', () => { box.focus(); box.select(); cap(); }), act('rotate', 'Clear letter colours', () => { o.runs = []; commit(); render(); refreshThumbs(); toast('Letter colours cleared'); })),
-        h('div', { class: 'fld' }, h('label', null, 'Colour for the selected letters'), h('div', { class: 'sw' }, cust, SWATCHES.map(c => h('button', { type: 'button', class: 'swc', style: { background: c }, 'aria-label': 'Letters ' + c, onclick: () => paintSel(c) }))))];
+        h('div', { class: 'fld' }, h('label', null, 'Colour for the selected letters'), h('div', { class: 'sw' }, cust, SWATCHES.map(c => h('button', { type: 'button', class: 'swc', style: { background: c }, 'aria-label': 'Letters ' + c, onclick: () => paintSel(c) }))), colorMemory(() => cust.value, c => { cust.value = c; paintSel(c); }))];
     },
     Style: o => [h('p', { class: 'tinyp' }, 'Tap a style to apply it. Every setting stays editable afterwards.'),
       h('div', { class: 'fonts' }, STYLES.map(([n, fn]) => h('button', { type: 'button', class: 'chip', onclick: () => { resetFx(o); fn(o); LAYOUT.clear(); ensureFont(o); commit(); render(); refreshThumbs(); buildPanel(); } }, n)))],
@@ -1671,6 +1711,26 @@ async function verifyZip(blob, expectW, expectH, expectNames) {
   return res;
 }
 
+/* ============ PDF writer (one JPEG per page) ============ */
+async function makePdf(pages, W, H) {
+  const enc = new TextEncoder(), parts = [], offs = []; let len = 0;
+  const put = x => { const u = typeof x === 'string' ? enc.encode(x) : x; parts.push(u); len += u.length; };
+  const n = pages.length; put('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n');
+  const obj = (id, body) => { offs[id] = len; put(`${id} 0 obj\n`); put(body); put('\nendobj\n'); };
+  obj(1, '<< /Type /Catalog /Pages 2 0 R >>');
+  obj(2, `<< /Type /Pages /Count ${n} /Kids [${pages.map((_, i) => `${3 + i * 3} 0 R`).join(' ')}] >>`);
+  for (let i = 0; i < n; i++) {
+    const pid = 3 + i * 3, cid = pid + 1, iid = pid + 2, data = new Uint8Array(await pages[i].arrayBuffer());
+    obj(pid, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 ${iid} 0 R >> >> /Contents ${cid} 0 R >>`);
+    const cs = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`; obj(cid, `<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`);
+    offs[iid] = len; put(`${iid} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${W} /Height ${H} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${data.length} >>\nstream\n`); put(data); put('\nendstream\nendobj\n');
+  }
+  const total = 3 + n * 3, xr = len; put(`xref\n0 ${total}\n0000000000 65535 f \n`);
+  for (let i = 1; i < total; i++) put(String(offs[i]).padStart(10, '0') + ' 00000 n \n');
+  put(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF\n`);
+  return new Blob(parts, { type: 'application/pdf' });
+}
+
 /* ============ export ============ */
 async function getDownloads() { try { return window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch { return null; } }
 /* Android app (Capacitor): files are staged in the app cache and handed to the system share sheet. */
@@ -1747,29 +1807,30 @@ function openExport() {
     host.append(
       h('div', { class: 'row' },
         h('div', { class: 'fld' }, h('label', null, 'Slides'), seg([['one', `This slide (${S.active + 1})`], ...(many ? [['all', `All ${P.slides.length} slides`]] : [])], st.range, v => { st.range = v; draw(); })),
-        h('div', { class: 'fld' }, h('label', null, 'Format'), seg([['png', 'PNG'], ['jpg', 'JPG']], st.fmt, v => { st.fmt = v; draw(); }))),
+        h('div', { class: 'fld' }, h('label', null, 'Format'), seg([['png', 'PNG'], ['jpg', 'JPG'], ['pdf', 'PDF']], st.fmt, v => { st.fmt = v; draw(); }))),
       st.fmt === 'png' ? h('label', { class: 'check' }, h('input', { type: 'checkbox', id: 'xTr', checked: st.transparent ? true : null, onchange: e => { st.transparent = e.target.checked; } }), 'Transparent background (leaves out the backdrop)') : slider('JPG quality', 0.5, 1, 0.01, () => st.q, v => { st.q = v; }, v => Math.round(v * 100) + '%'),
-      h('p', null, `${P.w} × ${P.h} px · files are named zon-slide-01.${st.fmt}` + (st.range === 'all' ? ' and packed into one ZIP.' : ' for the slide you are on.')),
-      h('p', { class: 'tinyp' }, st.fmt === 'png' ? 'PNG keeps see-through areas.' : 'JPG cannot be see-through, so clear areas turn white. Choose PNG to keep them.'),
+      h('p', null, st.fmt === 'pdf' ? `${P.w} × ${P.h} px pages · one PDF file, ready to upload to LinkedIn as a document.` : `${P.w} × ${P.h} px · files are named zon-slide-01.${st.fmt}` + (st.range === 'all' ? ' and packed into one ZIP.' : ' for the slide you are on.')),
+      h('p', { class: 'tinyp' }, st.fmt === 'png' ? 'PNG keeps see-through areas.' : st.fmt === 'pdf' ? 'PDF pages cannot be see-through, so clear areas turn white.' : 'JPG cannot be see-through, so clear areas turn white. Choose PNG to keep them.'),
       h('div', { id: 'xProg', hidden: true }, h('div', { class: 'bar' }, h('i', { id: 'xBar' })), h('p', { id: 'xStat', style: { marginTop: '8px' } })),
       h('div', { id: 'xErr' }),
       h('button', { type: 'button', class: 'btn primary block', id: 'xGo', onclick: go, html: ic('export', 18) + `<span>${st.range === 'all' ? 'Export all slides' : 'Export this slide'}</span>` }));
   };
   const go = async () => {
-    if (st.busy) return; st.busy = true; SET.fmt = st.fmt; SET.q = st.q; saveSettings(); $('#xErr').textContent = ''; const prog = $('#xProg'); prog.hidden = false; const go = $('#xGo'); go.disabled = true;
+    if (st.busy) return; st.busy = true; if (st.fmt !== 'pdf') SET.fmt = st.fmt; SET.q = st.q; saveSettings(); $('#xErr').textContent = ''; const prog = $('#xProg'); prog.hidden = false; const go = $('#xGo'); go.disabled = true;
     const bar = $('#xBar'), stat = $('#xStat'); const p = (f, t) => { bar.style.width = Math.round(f * 100) + '%'; stat.textContent = t; };
     try {
       const idxs = st.range === 'all' ? P.slides.map((_, i) => i) : [S.active];
       if (P.w * P.h > 16000000) throw new Error(`${P.w} × ${P.h} px is too large for this device to export. Choose a smaller size in Canvas settings (about 4000 × 4000 max).`);
       p(0.02, 'Loading fonts and images…'); await prepareForExport(idxs);
-      const ext = st.fmt, files = [];
+      const isPdf = st.fmt === 'pdf', ext = isPdf ? 'jpg' : st.fmt, files = [];
       for (let k = 0; k < idxs.length; k++) {
         const i = idxs[k]; p(0.05 + 0.8 * k / idxs.length, `Rendering slide ${i + 1} (${k + 1} of ${idxs.length})…`); await nextFrame();
-        try { files.push({ name: `zon-slide-${pad2(i + 1)}.${ext}`, blob: await renderToBlob(P.slides[i], st.fmt, st.q, st.transparent) }); }
+        try { files.push({ name: `zon-slide-${pad2(i + 1)}.${ext}`, blob: await renderToBlob(P.slides[i], ext, st.q, st.transparent) }); }
         catch (e) { throw new Error(`Slide ${i + 1} could not be exported. ${e.message || ''}`.trim()); }
       }
       let result;
-      if (files.length === 1 && st.range === 'one') result = { blob: files[0].blob, filename: files[0].name, count: 1, check: null, files };
+      if (isPdf) { p(0.9, 'Building PDF…'); const pdf = await makePdf(files.map(f => f.blob), P.w, P.h); result = { blob: pdf, filename: 'zon-slides.pdf', count: files.length, check: null, files: [], pdf: true }; }
+      else if (files.length === 1 && st.range === 'one') result = { blob: files[0].blob, filename: files[0].name, count: 1, check: null, files };
       else {
         p(0.88, 'Packing ZIP…'); const zip = await makeZip(files);
         p(0.95, 'Checking every image opens…'); const check = await verifyZip(zip, P.w, P.h, files.map(f => f.name));
@@ -1788,7 +1849,7 @@ function openExport() {
     const shareAll = NATIVE() && r.files && r.files.length > 1 ? h('button', { type: 'button', class: 'btn block', html: ic('share', 18) + `<span>Share all ${r.files.length} images</span>`, onclick: async () => { msg.textContent = ''; try { await nativeShare(r.files.map(f => ({ blob: f.blob, filename: f.name })), 'Zon Studio slides'); msg.append(h('div', { class: 'okbox' }, 'Sent to your chosen destination.')); } catch (e) { msg.append(h('div', { class: 'err' }, errMsg(e))); } } }) : null;
     const canShare = typeof navigator !== 'undefined' && navigator.canShare && (() => { try { return navigator.canShare({ files: [new File([r.blob], r.filename, { type: r.blob.type })] }); } catch { return false; } })();
     host.append(...[
-      h('div', { class: 'okbox' }, h('b', null, r.count === 1 ? 'Image ready' : `${r.count} images ready`), h('div', null, `${r.filename} · ${(r.blob.size / 1048576).toFixed(2)} MB`),
+      h('div', { class: 'okbox' }, h('b', null, r.pdf ? `PDF ready · ${r.count} page${r.count === 1 ? '' : 's'}` : r.count === 1 ? 'Image ready' : `${r.count} images ready`), h('div', null, `${r.filename} · ${(r.blob.size / 1048576).toFixed(2)} MB`),
         r.check ? h('div', { style: { color: 'var(--ok)', marginTop: '4px' } }, `Checked: all ${r.check.length} images open at ${P.w} × ${P.h}.`) : null),
       r.check ? h('div', { class: 'list' }, r.check.map(c => h('div', null, h('span', null, c.name), h('span', null, (c.size / 1024).toFixed(0) + ' KB')))) : null,
       saveBtn,
@@ -1869,7 +1930,7 @@ function openProjects() {
     if (idx === null) host.append(h('p', { class: 'empty' }, 'This browser is blocking local storage. Project files still work.'));
     else if (!idx.length) host.append(h('p', { class: 'empty' }, 'Nothing saved yet. Tap “Save this project”.'));
     else host.append(h('div', { class: 'rowlist' }, idx.map(r => projRow(r.name, r, 'Open', go('proj:' + r.id), async () => { try { await idb.del('proj:' + r.id); await idb.set('index', idx.filter(x => x.id !== r.id)); draw(); } catch { toast('Could not delete'); } }))));
-    host.append(h('div', { class: 'lab' }, 'Files'), h('div', { class: 'row' },
+    host.append(h('div', { class: 'lab' }, 'Files and templates'), h('p', { class: 'tinyp' }, 'A project file works as a template. Design it once, tap Download project file, then open that file any time to start from it.'), h('div', { class: 'row' },
       h('button', { type: 'button', class: 'btn', html: ic('export', 18) + '<span>Download project file</span>', onclick: async () => { try { await deliver(new Blob([JSON.stringify(serializeProject())], { type: 'application/json' }), (P.name.replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '') || 'zon-project') + '.zon.json'); } catch (e) { toast(errMsg(e)); } } }),
       h('button', { type: 'button', class: 'btn', html: ic('upload', 18) + '<span>Open project file</span>', onclick: () => $('#fProj').click() })));
   };

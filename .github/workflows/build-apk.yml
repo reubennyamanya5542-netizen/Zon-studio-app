@@ -35,6 +35,11 @@ jobs:
       - name: Copy the app into Android
         run: npx cap sync android
 
+      - name: Use the same signing key every build
+        run: |
+          mkdir -p ~/.android
+          cp debug.keystore ~/.android/debug.keystore
+      
       - name: Build the APK
         working-directory: android
         run: |

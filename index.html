@@ -205,6 +205,7 @@ input.text,select.text{width:100%;height:38px;background:var(--panel-2);border:1
 @keyframes lgFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.lg.anim *,.word,.tag{animation:none!important}.lg.anim .z{stroke-dashoffset:0}.lg.anim .cards rect{opacity:var(--o,1)}.word,.tag,.lg.anim .shine{opacity:1}}
 img.lg{display:block;object-fit:contain}img.lg.anim{animation:lgIn .8s cubic-bezier(.2,.8,.2,1) both}@keyframes lgIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
+.legal{text-align:center;margin:18px 0 4px;font:11px/1.5 Georgia,'Times New Roman',serif;color:var(--muted,#8a8f9c)}.legal button{background:none;border:0;padding:6px 4px;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 </style>
 
 <div id="app">
@@ -238,6 +239,7 @@ img.lg{display:block;object-fit:contain}img.lg.anim{animation:lgIn .8s cubic-bez
 <input type="file" id="fImg" accept="image/*" multiple hidden>
 <input type="file" id="fBg" accept="image/*" hidden>
 <input type="file" id="fTex" accept="image/*" hidden>
+<input type="file" id="fFill" accept="image/*" hidden>
 <input type="file" id="fFont" accept=".ttf,.otf,.woff,.woff2,font/*" hidden>
 <input type="file" id="fProj" accept=".json,application/json" hidden>
 
@@ -440,14 +442,11 @@ const LOGO_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABc
 function logoSVG(size = 44, anim = false) {
   return `<img class="lg${anim ? ' anim' : ''}" src="${LOGO_URI}" width="${size}" height="${size}" alt="" draggable="false">`;
 }
-function runSplash(force) {
+function runSplash() {
   const sp = $('#splash'); if (!sp) return;
-  if (!SET.intro && !force) { sp.remove(); return; }
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  sp.className = ''; sp.hidden = false;
-  sp.innerHTML = `<div class="splash-in">${logoSVG(132, true)}<div class="word">ZON STUDIO</div><div class="tag">Design · Carousel · Export</div></div>`;
-  let done = false; const end = () => { if (done) return; done = true; sp.classList.add('out'); setTimeout(() => { sp.hidden = true; sp.innerHTML = ''; sp.classList.remove('out'); }, 500); };
-  sp.onclick = end; setTimeout(end, reduced ? 900 : 2500);
+  sp.className = ''; sp.hidden = false; sp.innerHTML = logoSVG(132, false);
+  let done = false; const end = () => { if (done) return; done = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 350); };
+  sp.onclick = end; setTimeout(end, 1000);
 }
 
 /* ============ assets ============ */
@@ -689,33 +688,47 @@ function runCols(o) {
   for (const r of o.runs) for (let i = Math.max(0, r.a); i < Math.min(o.text.length, r.b); i++) cols[i] = r.c;
   return cols;
 }
+function runFonts(o) {
+  const f = new Array(o.text.length).fill(null);
+  for (const r of o.fruns) for (let i = Math.max(0, r.a); i < Math.min(o.text.length, r.b); i++) f[i] = r.f;
+  return f;
+}
 function drawText(ctx, o) {
   const lines = layoutText(o);
   ctx.font = fontStr(o); ctx.letterSpacing = (o.ls || 0) + 'px'; ctx.textBaseline = 'middle'; ctx.textAlign = o.align; ctx.lineJoin = 'round';
   const lh = o.size * o.lh, x = o.align === 'left' ? -o.w / 2 : o.align === 'right' ? o.w / 2 : 0, top = -o.h / 2 + lh / 2;
-  const cols = o.runs && o.runs.length ? runCols(o) : null, starts = cols ? lineStarts(o, lines) : null, curve = o.curve || 0;
+  const cols = o.runs && o.runs.length ? runCols(o) : null, fonts = o.fruns && o.fruns.length ? runFonts(o) : null, curve = o.curve || 0;
+  const starts = (cols || fonts) ? lineStarts(o, lines) : null, baseFont = ctx.font;
+  if (fonts) for (const r of o.fruns) ensureFont({ ...o, font: r.f });
   let base = o.color;
   const adv = t => ctx.measureText(t).width;
+  const fontOf = f => f ? fontStr({ ...o, font: f }) : baseFont;
+  const advF = (t, f) => { ctx.font = fontOf(f); const w = ctx.measureText(t).width; ctx.font = baseFont; return w; };
   const paintLine = (i, dx, dy, mode) => { // mode: s = outline, f = flat fill, m = main fill (letter colours apply)
-    const ln = lines[i], y = top + i * lh + dy;
-    if (!curve && !(mode === 'm' && cols)) { mode === 's' ? ctx.strokeText(ln, x + dx, y) : ctx.fillText(ln, x + dx, y); return; }
-    const W = adv(ln), left = o.align === 'left' ? x + dx : o.align === 'right' ? x + dx - W : x + dx - W / 2;
+    const ln = lines[i], y = top + i * lh + dy, st = starts ? starts[i] : 0;
+    if (!curve && !(mode === 'm' && cols) && !fonts) { mode === 's' ? ctx.strokeText(ln, x + dx, y) : ctx.fillText(ln, x + dx, y); return; }
+    const leftOf = W => o.align === 'left' ? x + dx : o.align === 'right' ? x + dx - W : x + dx - W / 2;
     ctx.textAlign = 'left';
     if (!curve) {
-      let k = 0;
+      const cc = n => (mode === 'm' && cols) ? cols[st + n] || null : null, ff = n => fonts ? fonts[st + n] || null : null;
+      const sg = []; let k = 0;
       while (k < ln.length) {
-        let e = k + 1; const c = cols[starts[i] + k];
-        while (e < ln.length && cols[starts[i] + e] === c) e++;
-        ctx.fillStyle = c || base; ctx.fillText(ln.slice(k, e), left + adv(ln.slice(0, k)), y); k = e;
+        let e = k + 1; const c = cc(k), f = ff(k);
+        while (e < ln.length && cc(e) === c && ff(e) === f) e++;
+        sg.push({ t: ln.slice(k, e), c, f, w: advF(ln.slice(k, e), f) }); k = e;
       }
-      ctx.fillStyle = base; ctx.textAlign = o.align; return;
+      let px = leftOf(sg.reduce((a, q) => a + q.w, 0));
+      for (const q of sg) { ctx.font = fontOf(q.f); if (mode === 'm') ctx.fillStyle = q.c || base; mode === 's' ? ctx.strokeText(q.t, px, y) : ctx.fillText(q.t, px, y); px += q.w; }
+      ctx.font = baseFont; if (mode === 'm') ctx.fillStyle = base; ctx.textAlign = o.align; return;
     }
-    const sweep = curve / 100 * Math.PI * 1.4, R = W / Math.max(0.05, Math.abs(sweep)), sg = Math.sign(sweep);
+    let W = 0;
+    if (fonts) { for (let k = 0; k < ln.length;) { const ch = String.fromCodePoint(ln.codePointAt(k)); W += advF(ch, fonts[st + k]); k += ch.length; } } else W = adv(ln);
+    const left = leftOf(W), sweep = curve / 100 * Math.PI * 1.4, R = W / Math.max(0.05, Math.abs(sweep)), sg = Math.sign(sweep);
     let acc = 0;
     for (let k = 0; k < ln.length;) {
-      const ch = String.fromCodePoint(ln.codePointAt(k)), w1 = adv(ch), phi = (acc + w1 / 2 - W / 2) / R; acc += w1;
-      ctx.save(); ctx.translate(left + W / 2 + R * Math.sin(phi), y + sg * R * (1 - Math.cos(phi))); ctx.rotate(sg * phi); ctx.textAlign = 'center';
-      if (mode === 'm') ctx.fillStyle = (cols && cols[starts[i] + k]) || base;
+      const ch = String.fromCodePoint(ln.codePointAt(k)), fk = fonts ? fonts[st + k] || null : null, w1 = advF(ch, fk), phi = (acc + w1 / 2 - W / 2) / R; acc += w1;
+      ctx.save(); ctx.translate(left + W / 2 + R * Math.sin(phi), y + sg * R * (1 - Math.cos(phi))); ctx.rotate(sg * phi); ctx.textAlign = 'center'; if (fk) ctx.font = fontOf(fk);
+      if (mode === 'm') ctx.fillStyle = (cols && cols[st + k]) || base;
       mode === 's' ? ctx.strokeText(ch, 0, 0) : ctx.fillText(ch, 0, 0); ctx.restore();
       k += ch.length;
     }
@@ -742,6 +755,12 @@ function drawText(ctx, o) {
   if (!o.hollow) paint(0, 0, 'm');
   clearShadow(ctx);
 }
+function drawFillImg(ctx, o, clipPath, bx, by, bw, bh, rule) {
+  const im = o.fimg, a = im && o.src && ASSETS.get(o.src); if (!a || !a.ok) return;
+  const cover = Math.max(bw / a.w, bh / a.h) * Math.max(1, im.zoom || 1), dw = a.w * cover, dh = a.h * cover;
+  const cx = bx + bw / 2 + (im.px || 0) * (dw - bw) / 2, cy = by + bh / 2 + (im.py || 0) * (dh - bh) / 2;
+  ctx.save(); ctx.clip(clipPath, rule); ctx.drawImage(a.img, cx - dw / 2, cy - dh / 2, dw, dh); ctx.restore();
+}
 function drawCore(ctx, o) {
   if (o.type === 'text') drawText(ctx, o);
   else if (o.type === 'shape') {
@@ -751,6 +770,7 @@ function drawCore(ctx, o) {
       applyShadow(ctx, o.shadow);
       ctx.fillStyle = f.mode === 'grad' ? gradObj(ctx, 0, 0, o.w, o.h, f) : f.c1;
       ctx.fill(p);
+      if (f.mode === 'image') { clearShadow(ctx); drawFillImg(ctx, o, p, -o.w / 2, -o.h / 2, o.w, o.h, 'nonzero'); }
     }
     if (hasStroke) {
       if (hasFill) clearShadow(ctx); else applyShadow(ctx, o.shadow);
@@ -761,12 +781,15 @@ function drawCore(ctx, o) {
     const st = STICKERS.find(s => s.id === o.sid) || STICKERS[0];
     ctx.scale(o.w / 24, o.h / 24); ctx.translate(-12, -12);
     applyShadow(ctx, o.shadow);
-    ctx.fillStyle = o.color; ctx.fill(new Path2D(st.d), st.eo ? 'evenodd' : 'nonzero');
+    ctx.fillStyle = (o.grad && o.grad.on) ? gradObj(ctx, 12, 12, 24, 24, o.grad) : o.color; ctx.fill(new Path2D(st.d), st.eo ? 'evenodd' : 'nonzero');
+    if (o.fimg && o.src) { clearShadow(ctx); drawFillImg(ctx, o, new Path2D(st.d), 0, 0, 24, 24, st.eo ? 'evenodd' : 'nonzero'); }
   } else if (o.type === 'image') {
     const a = ASSETS.get(o.src);
     if (!a || !a.ok) { ctx.fillStyle = '#3a3f4a'; ctx.fillRect(-o.w / 2, -o.h / 2, o.w, o.h); return; }
     const pr = procFor(o, a), srcI = pr ? pr.c : a.img, pw = pr ? pr.w : a.w, ph = pr ? pr.h : a.h, skey = pr ? pr.key : 'raw|' + o.src;
-    const c = o.crop, sx = c.l * pw, sy = c.t * ph, sw = Math.max(1, (1 - c.l - c.r) * pw), sh2 = Math.max(1, (1 - c.t - c.b) * ph);
+    const c = o.crop; let sx = c.l * pw, sy = c.t * ph, sw = Math.max(1, (1 - c.l - c.r) * pw), sh2 = Math.max(1, (1 - c.t - c.b) * ph);
+    const zf = Math.max(1, o.zoom || 1);
+    if (zf > 1) { const nw = sw / zf, nh = sh2 / zf; sx += (sw - nw) * (0.5 + (o.flip ? -1 : 1) * (o.px || 0) / 2); sy += (sh2 - nh) * (0.5 + (o.py || 0) / 2); sw = nw; sh2 = nh; }
     const clipP = imgClip(o), ol = o.ol && o.ol.on && o.ol.w > 0 ? o.ol : null;
     if (ol && clipP) { ctx.save(); ctx.lineWidth = ol.w * 2; ctx.strokeStyle = ol.c; ctx.lineJoin = 'round'; ctx.stroke(clipP); ctx.restore(); }
     if (ol && !clipP) {
@@ -923,6 +946,14 @@ function addObject(o, tab) {
 function dupObject() {
   const o = selObj(); if (!o) return; const c = deep(o); c.id = uid(); c.x += P.w * 0.03; c.y += P.w * 0.03;
   const a = slide().objects; a.splice(a.indexOf(o) + 1, 0, c); S.selId = c.id; commit(); render(); buildPanel(); refreshThumbs();
+}
+function copyToNext() {
+  const o = selObj(); if (!o) return; flushCommit();
+  const ni = S.active + 1;
+  if (ni >= P.slides.length) { if (!slideCapOk()) return; P.slides.push({ id: uid(), bg: deep(slide().bg), objects: [] }); }
+  const c = deep(o); c.id = uid(); P.slides[ni].objects.push(c); // same position as on this slide
+  S.active = ni; S.selId = c.id; commit(); renderStrip(); render(); buildPanel(); syncHeader(); refreshThumbs();
+  toast('Copied to slide ' + (ni + 1) + ' in the same spot. Slide it where you want it.');
 }
 function delObject() {
   const o = selObj(); if (!o) return; const a = slide().objects; a.splice(a.indexOf(o), 1); S.selId = null; if (S.panel === 'object') S.panel = null;
@@ -1261,7 +1292,7 @@ const TABS = {
   text: ['Text', 'Style', 'Font', 'Size', 'Color', 'Stroke', 'Shadow', 'Gradient', 'Texture', 'Curve', '3D', 'Spacing', 'Tilt', 'Arrange'],
   image: ['Adjust', 'Filters', 'Outline', 'Mask', 'Erase', 'Crop', 'Tilt', 'Shadow', 'Arrange'],
   shape: ['Fill', 'Stroke', 'Shape', 'Tilt', 'Shadow', 'Arrange'],
-  sticker: ['Color', 'Tilt', 'Shadow', 'Arrange']
+  sticker: ['Color', 'Gradient', 'Image', 'Tilt', 'Shadow', 'Arrange']
 };
 function buildPanel() {
   const pn = $('#panel'); live = null;
@@ -1372,6 +1403,14 @@ function shadowBody(o) {
     h('div', { class: 'row' }, slider('Blur', 0, 80, 1, () => s.blur, v => { s.blur = v; s.on = true; }), slider('Opacity', 0, 1, 0.05, () => s.op, v => { s.op = v; s.on = true; }, v => Math.round(v * 100) + '%')),
     colorField('Shadow colour', () => s.color, v => { s.color = v; s.on = true; })];
 }
+function imageFillBody(o) {
+  const im = o.fimg;
+  return [h('div', { class: 'row' }, act('upload', im ? 'Change photo' : 'Choose photo', () => $('#fFill').click()),
+      im ? act('trash', 'Remove photo', () => { o.fimg = null; o.src = null; if (o.type === 'shape' && o.fill.mode === 'image') o.fill.mode = 'solid'; commit(); render(); refreshThumbs(); buildPanel(); }, 'danger') : null),
+    im ? slider('Zoom', 1, 4, 0.05, () => im.zoom || 1, v => { im.zoom = v; }, v => v.toFixed(2) + 'x') : h('p', { class: 'tinyp' }, 'Pick a photo from your phone and it fills this ' + o.type + '.'),
+    im ? slider('Move left / right', -1, 1, 0.01, () => im.px || 0, v => { im.px = v; }, v => Math.round(v * 100)) : null,
+    im ? slider('Move up / down', -1, 1, 0.01, () => im.py || 0, v => { im.py = v; }, v => Math.round(v * 100)) : null].filter(Boolean);
+}
 function arrangeBody(o) {
   const num = (label, get, set, dis) => { const i = h('input', { type: 'number', class: 'num wide', value: Math.round(get()), disabled: dis ? true : null, 'aria-label': label, inputmode: 'numeric' }); i.addEventListener('change', () => { set(+i.value || 0); render(); commit(); refreshThumbs(); }); return h('div', { class: 'fld' }, h('label', null, label), i); };
   const refs = {};
@@ -1380,7 +1419,7 @@ function arrangeBody(o) {
   live = () => { refs.x.value = Math.round(o.x); refs.y.value = Math.round(o.y); refs.w.value = Math.round(o.w); refs.h.value = Math.round(o.h); };
   return [row,
     h('div', { class: 'row' }, slider('Rotation', -180, 180, 1, () => o.rot, v => { o.rot = v; }, v => Math.round(v) + '°'), slider('Opacity', 0, 1, 0.01, () => o.opacity, v => { o.opacity = v; }, v => Math.round(v * 100) + '%')),
-    h('div', { class: 'row' }, act('copy', 'Duplicate', dupObject), act('front', 'Front', () => moveZ(o, 'front')), act('up', 'Forward', () => moveZ(o, 'up')), act('down', 'Backward', () => moveZ(o, 'down')), act('back', 'Back', () => moveZ(o, 'back')),
+    h('div', { class: 'row' }, act('copy', 'Duplicate', dupObject), act('copy', 'To next slide', copyToNext), act('front', 'Front', () => moveZ(o, 'front')), act('up', 'Forward', () => moveZ(o, 'up')), act('down', 'Backward', () => moveZ(o, 'down')), act('back', 'Back', () => moveZ(o, 'back')),
       act(o.locked ? 'lock' : 'unlock', o.locked ? 'Unlock' : 'Lock', () => { o.locked = !o.locked; commit(); render(); buildPanel(); }), act('trash', 'Delete', delObject, 'danger'))];
 }
 function cropSet(o, key, val) {
@@ -1399,22 +1438,37 @@ function cropAspect(o, ratio) {
   if (ratio) { if (a.w / a.h > ratio) { l = r = (1 - a.h * ratio / a.w) / 2; } else { t = b = (1 - a.w / ratio / a.h) / 2; } }
   o.crop = { l, t, r, b }; o.w = s * (1 - l - r) * a.w; o.h = s * (1 - t - b) * a.h;
 }
+function fitSlide(o) {
+  const a = ASSETS.get(o.src); if (!a || !a.ok) return;
+  const c = o.crop, tgt = P.w / P.h, cur = o.w / o.h;
+  if (cur > tgt) { const vw = 1 - c.l - c.r, t = (vw - vw * tgt / cur) / 2; c.l += t; c.r += t; }
+  else { const vh = 1 - c.t - c.b, t = (vh - vh * cur / tgt) / 2; c.t += t; c.b += t; }
+  o.w = P.w; o.h = P.h; o.x = P.w / 2; o.y = P.h / 2; o.rot = 0;
+}
 function setRun(o, a, b, c) {
   const out = [];
   for (const r of o.runs || []) { if (r.b <= a || r.a >= b) { out.push(r); continue; } if (r.a < a) out.push({ a: r.a, b: a, c: r.c }); if (r.b > b) out.push({ a: b, b: r.b, c: r.c }); }
   if (c) out.push({ a, b, c });
   o.runs = out;
 }
+const LETSEL = { id: null, a: 0, b: 0 };
+function setFontRun(o, a, b, f) {
+  const out = [];
+  for (const r of o.fruns || []) { if (r.b <= a || r.a >= b) { out.push(r); continue; } if (r.a < a) out.push({ a: r.a, b: a, f: r.f }); if (r.b > b) out.push({ a: b, b: r.b, f: r.f }); }
+  if (f) out.push({ a, b, f });
+  o.fruns = out;
+}
 function adjustRuns(o, oldT, newT) {
-  if (!o.runs || !o.runs.length) return;
+  if ((!o.runs || !o.runs.length) && (!o.fruns || !o.fruns.length)) return;
   let p = 0; const m = Math.min(oldT.length, newT.length);
   while (p < m && oldT[p] === newT[p]) p++;
   let sfx = 0; while (sfx < m - p && oldT[oldT.length - 1 - sfx] === newT[newT.length - 1 - sfx]) sfx++;
   const oe = oldT.length - sfx, d = newT.length - oldT.length;
   const fixA = v => v >= oe ? v + d : v <= p ? v : p, fixB = v => v <= p ? v : v >= oe ? v + d : p;
-  o.runs = o.runs.map(r => ({ a: fixA(r.a), b: Math.min(newT.length, fixB(r.b)), c: r.c })).filter(r => r.b > r.a);
+  if (o.runs) o.runs = o.runs.map(r => ({ a: fixA(r.a), b: Math.min(newT.length, fixB(r.b)), c: r.c })).filter(r => r.b > r.a);
+  if (o.fruns) o.fruns = o.fruns.map(r => ({ a: fixA(r.a), b: Math.min(newT.length, fixB(r.b)), f: r.f })).filter(r => r.b > r.a);
 }
-function resetFx(o) { o.stroke.on = false; o.shadow.on = false; o.grad.on = false; o.ext.on = false; o.texOn = false; o.curve = 0; o.runs = []; o.ls = 0; o.bold = true; o.italic = false; o.hollow = false; o.color = '#ffffff'; }
+function resetFx(o) { o.stroke.on = false; o.shadow.on = false; o.grad.on = false; o.ext.on = false; o.texOn = false; o.curve = 0; o.runs = []; o.fruns = []; o.ls = 0; o.bold = true; o.italic = false; o.hollow = false; o.color = '#ffffff'; }
 const STYLES = [
   ['Clean', o => { }],
   ['Meme', o => { o.font = 'Anton'; o.ls = 1; o.stroke = { on: true, w: 8, color: '#000000' }; }],
@@ -1447,10 +1501,21 @@ const BODIES = {
       const rec = getRecent(), cats = [...(rec.length ? ['Recent'] : []), ...Object.keys(FONT_CATS), ...(P.fonts.length ? ['Yours'] : [])];
       const cur = S.fontCat && cats.includes(S.fontCat) ? S.fontCat : catOf(o.font);
       const names = cur === 'Recent' ? rec : cur === 'Yours' ? P.fonts.map(f => f.name) : FONT_CATS[cur] || [];
-      const chips = names.map(n => h('button', { type: 'button', class: 'fchip' + (n === o.font ? ' on' : ''), onclick: () => { o.font = n; pushRecent(n); LAYOUT.clear(); ensureFont(o); commit(); render(); refreshThumbs(); buildPanel(); } }, h('b', { style: { fontFamily: fontFamily(n) } }, 'Aa Bb'), h('small', null, n)));
+      const chips = names.map(n => h('button', { type: 'button', class: 'fchip' + (n === o.font ? ' on' : ''), onclick: () => { if (S.letterMode) { if (LETSEL.id !== o.id || LETSEL.b <= LETSEL.a) { toast('Select some letters in the box below first.'); return; } setFontRun(o, LETSEL.a, LETSEL.b, n); pushRecent(n); LAYOUT.clear(); ensureFont({ ...o, font: n }); } else { o.font = n; pushRecent(n); LAYOUT.clear(); ensureFont(o); } commit(); render(); refreshThumbs(); buildPanel(); } }, h('b', { style: { fontFamily: fontFamily(n) } }, 'Aa Bb'), h('small', null, n)));
       return [h('div', { class: 'fonts' }, cats.map(c => h('button', { type: 'button', class: 'chip' + (c === cur ? ' on' : ''), onclick: () => { S.fontCat = c; S.resetRow = 1; buildPanel(); } }, c))),
         h('div', { class: 'fonts' }, chips),
         h('div', { class: 'row' }, act('upload', 'Import font file', () => $('#fFont').click()), h('div', { class: 'seg' }, h('button', { type: 'button', 'aria-label': 'Bold', class: o.bold ? 'on' : '', onclick: () => { o.bold = !o.bold; commit(); render(); buildPanel(); refreshThumbs(); } }, h('b', null, 'B')), h('button', { type: 'button', 'aria-label': 'Italic', class: o.italic ? 'on' : '', onclick: () => { o.italic = !o.italic; commit(); render(); buildPanel(); refreshThumbs(); } }, h('i', null, 'I')))),
+        (() => {
+          const mode = seg([['all', 'Whole text'], ['sel', 'Selected letters']], S.letterMode ? 'sel' : 'all', v => { S.letterMode = v === 'sel'; buildPanel(); });
+          if (!S.letterMode) return h('div', { class: 'fld' }, h('label', null, 'Change font for'), mode);
+          const box = h('textarea', { class: 'txt selbox', rows: 2, readonly: true, 'aria-label': 'Select letters to change font' }); box.value = o.text;
+          const cap = () => { if (box.selectionEnd > box.selectionStart) { LETSEL.id = o.id; LETSEL.a = box.selectionStart; LETSEL.b = box.selectionEnd; } };
+          ['select', 'pointerup', 'keyup', 'touchend', 'mouseup', 'blur'].forEach(ev => box.addEventListener(ev, cap));
+          if (LETSEL.id === o.id && LETSEL.b > LETSEL.a && LETSEL.b <= o.text.length) setTimeout(() => { try { box.setSelectionRange(LETSEL.a, LETSEL.b); } catch { /* ignore */ } }, 0);
+          return h('div', { class: 'fld' }, h('label', null, 'Change font for'), mode,
+            h('p', { class: 'tinyp' }, 'Press and hold in the box, drag over the letters, then tap any font above. It applies at once.'),
+            box, h('div', { class: 'row' }, act('check', 'Select all', () => { box.focus(); box.select(); cap(); }), act('rotate', 'Clear letter fonts', () => { o.fruns = []; LAYOUT.clear(); commit(); render(); refreshThumbs(); toast('Letter fonts cleared'); })));
+        })(),
         h('p', { class: 'tinyp' }, `${Object.values(FONT_CATS).flat().length} free fonts (Open Font License). Got a font from dafont or elsewhere? Import the file, and check its licence before publishing work that uses it.`)];
     },
     Size: o => [slider('Font size', 8, 600, 1, () => o.size, v => { o.size = v; }, v => Math.round(v)), seg([['left', '', 'left'], ['center', 'Centre'], ['right', '', 'right']].map(([v, l]) => [v, v[0].toUpperCase() + v.slice(1)]), o.align, v => { o.align = v; commit(); render(); buildPanel(); refreshThumbs(); })],
@@ -1496,7 +1561,10 @@ const BODIES = {
         h('p', { class: 'tinyp' }, 'Follows the edge of the picture, so it suits cut-out (transparent) PNGs. With a Mask shape it follows the shape.')]; },
     Mask: o => [h('div', { class: 'fonts' }, [['', 'None'], ['circle', 'Circle'], ['round', 'Rounded'], ['heart', 'Heart'], ['star', 'Star'], ['hexagon', 'Hexagon'], ['triangle', 'Triangle'], ['diamond', 'Diamond']].map(([k, n]) => h('button', { type: 'button', class: 'chip' + ((o.mask || '') === k ? ' on' : ''), onclick: () => { o.mask = k || null; commit(); render(); buildPanel(); refreshThumbs(); } }, n))),
       (o.mask === 'round') ? slider('Corner radius', 0, 400, 1, () => o.radius, v => { o.radius = v; }, v => Math.round(v)) : null,
-      h('p', { class: 'tinyp' }, 'Crops the picture to a shape. Resize the picture to change the shape\'s proportions.')],
+      h('p', { class: 'tinyp' }, 'Crops the picture to a shape. Resize the picture to change the shape\'s proportions.'),
+      slider('Zoom inside', 1, 4, 0.05, () => o.zoom || 1, v => { o.zoom = v; }, v => v.toFixed(2) + 'x'),
+      slider('Move left / right', -1, 1, 0.01, () => o.px || 0, v => { o.px = v; }, v => Math.round(v * 100)),
+      slider('Move up / down', -1, 1, 0.01, () => o.py || 0, v => { o.py = v; }, v => Math.round(v * 100))],
     Erase: o => { const ek = o.ek = o.ek || { on: false, c: '#ffffff', tol: 12, soft: 8 };
       return [h('p', { class: 'tinyp' }, 'Remove one colour, such as a plain white or green background:'),
         h('div', { class: 'row' }, act('check', ek.on ? 'Colour removal is on (tap to turn off)' : 'Remove this colour', () => { ek.on = !ek.on; commit(); render(); buildPanel(); refreshThumbs(); }), act('sliders', 'Use the top-left corner colour', () => pickCorner(o, ek))),
@@ -1509,16 +1577,19 @@ const BODIES = {
     Tilt: tiltBody,
     Crop: o => { const a = ASSETS.get(o.src); const mkc = (l, k) => slider(l, 0, 0.9, 0.01, () => o.crop[k], v => { if (v + (k === 'l' ? o.crop.r : k === 'r' ? o.crop.l : k === 't' ? o.crop.b : o.crop.t) > 0.92) v = Math.max(0, 0.92 - (k === 'l' ? o.crop.r : k === 'r' ? o.crop.l : k === 't' ? o.crop.b : o.crop.t)); cropSet(o, k, v); }, v => Math.round(v * 100) + '%');
       return [h('div', { class: 'row' }, mkc('Left', 'l'), mkc('Right', 'r')), h('div', { class: 'row' }, mkc('Top', 't'), mkc('Bottom', 'b')),
-        h('div', { class: 'row' }, ['1:1', '4:5', '16:9', '9:16'].map(r => { const [x, y] = r.split(':'); return act('canvas', r, () => { cropAspect(o, +x / +y); commit(); render(); buildPanel(); refreshThumbs(); }); }), act('rotate', 'Reset crop', () => { cropAspect(o, 0); commit(); render(); buildPanel(); refreshThumbs(); }))]; },
+        h('div', { class: 'row' }, ['1:1', '4:5', '16:9', '9:16'].map(r => { const [x, y] = r.split(':'); return act('canvas', r, () => { cropAspect(o, +x / +y); commit(); render(); buildPanel(); refreshThumbs(); }); }), act('canvas', 'Fit slide', () => { fitSlide(o); commit(); render(); buildPanel(); refreshThumbs(); }), act('rotate', 'Reset crop', () => { cropAspect(o, 0); commit(); render(); buildPanel(); refreshThumbs(); }))]; },
     Shadow: shadowBody, Arrange: arrangeBody
   },
   shape: {
-    Fill: o => { const f = o.fill; return [seg([['none', 'None'], ['solid', 'Solid'], ['grad', 'Gradient']], f.mode, v => { f.mode = v; commit(); render(); buildPanel(); refreshThumbs(); }), f.mode === 'solid' ? colorField('Colour', () => f.c1, v => { f.c1 = v; }) : f.mode === 'grad' ? gradEditor(f, () => { f.mode = 'grad'; }) : h('p', { class: 'empty' }, 'No fill. Add an outline in the Stroke tab.'), f.mode === 'grad' ? h('div', { class: 'fld' }, h('label', null, 'See-through presets'), h('div', { class: 'sw' }, FADES.map(([a, b, ang, o1, o2, nm]) => h('button', { type: 'button', class: 'swc', 'aria-label': nm, title: nm, style: { backgroundImage: `linear-gradient(${ang}deg,${rgba(a, o1)},${rgba(b, o2)}), ${CHECKER}`, backgroundSize: 'auto, 10px 10px', borderRadius: '8px' }, onclick: () => { f.mode = 'grad'; f.stops = null; f.gtype = 'linear'; f.c1 = a; f.c2 = b; f.angle = ang; f.a1 = o1; f.a2 = o2; commit(); render(); refreshThumbs(); buildPanel(); } })))) : null]; },
+    Fill: o => { const f = o.fill; return [seg([['none', 'None'], ['solid', 'Solid'], ['grad', 'Gradient'], ['image', 'Image']], f.mode, v => { f.mode = v; if (v === 'image' && !o.fimg) $('#fFill').click(); commit(); render(); buildPanel(); refreshThumbs(); }), f.mode === 'solid' ? colorField('Colour', () => f.c1, v => { f.c1 = v; }) : f.mode === 'grad' ? gradEditor(f, () => { f.mode = 'grad'; }) : f.mode === 'image' ? h('div', null, ...imageFillBody(o)) : h('p', { class: 'empty' }, 'No fill. Add an outline in the Stroke tab.'), f.mode === 'grad' ? h('div', { class: 'fld' }, h('label', null, 'See-through presets'), h('div', { class: 'sw' }, FADES.map(([a, b, ang, o1, o2, nm]) => h('button', { type: 'button', class: 'swc', 'aria-label': nm, title: nm, style: { backgroundImage: `linear-gradient(${ang}deg,${rgba(a, o1)},${rgba(b, o2)}), ${CHECKER}`, backgroundSize: 'auto, 10px 10px', borderRadius: '8px' }, onclick: () => { f.mode = 'grad'; f.stops = null; f.gtype = 'linear'; f.c1 = a; f.c2 = b; f.angle = ang; f.a1 = o1; f.a2 = o2; commit(); render(); refreshThumbs(); buildPanel(); } })))) : null]; },
     Stroke: o => [slider('Outline width', 0, 80, 1, () => o.stroke.w, v => { o.stroke.w = v; }), colorField('Outline colour', () => o.stroke.color, v => { o.stroke.color = v; })],
     Shape: o => [h('div', { class: 'fonts' }, SHAPES.map(([k, n]) => h('button', { type: 'button', class: 'chip' + (o.kind === k ? ' on' : ''), onclick: () => { o.kind = k; if (k === 'line') { o.h = 24; if (o.stroke.w < 4) o.stroke.w = 12; } commit(); render(); buildPanel(); refreshThumbs(); } }, n))), (o.kind === 'rect' || o.kind === 'round') ? slider('Corner radius', 0, 400, 1, () => o.radius, v => { o.radius = v; if (o.kind === 'rect' && v > 0) o.kind = 'round'; }, v => Math.round(v)) : null],
     Tilt: tiltBody, Shadow: shadowBody, Arrange: arrangeBody
   },
-  sticker: { Color: o => [colorField('Sticker colour', () => o.color, v => { o.color = v; })], Tilt: tiltBody, Shadow: shadowBody, Arrange: arrangeBody }
+  sticker: { Color: o => [o.grad && o.grad.on ? h('p', { class: 'empty' }, 'Gradient is on, so this colour is hidden. Turn it off in the Gradient tab.') : null, colorField('Sticker colour', () => o.color, v => { o.color = v; })],
+    Gradient: o => { const g = o.grad = o.grad || { on: false, c1: '#ffd36e', c2: '#ff5f6d', angle: 90 }; return [toggle('Gradient fill', g.on, v => { g.on = v; commit(); render(); refreshThumbs(); buildPanel(); }), gradEditor(g, () => { g.on = true; })]; },
+    Image: imageFillBody,
+    Tilt: tiltBody, Shadow: shadowBody, Arrange: arrangeBody }
 };
 
 /* ============ slides ============ */
@@ -1780,7 +1851,7 @@ async function prepareForExport(idxs) {
   }
   await Promise.all(jobs);
   for (const i of idxs) {
-    const sl = P.slides[i], ids = [...sl.objects.filter(o => (o.type === 'image' || (o.type === 'text' && o.texOn && o.src)) && !o.hidden).map(o => o.src), ...(sl.bg.type === 'image' && sl.bg.img ? [sl.bg.img] : [])];
+    const sl = P.slides[i], ids = [...sl.objects.filter(o => (o.type === 'image' || (o.type === 'text' && o.texOn && o.src) || ((o.type === 'shape' || o.type === 'sticker') && o.fimg && o.src)) && !o.hidden).map(o => o.src), ...(sl.bg.type === 'image' && sl.bg.img ? [sl.bg.img] : [])];
     for (const id of ids) { const a = ASSETS.get(id); if (!a || !(await a.ready)) throw new Error(`An image on slide ${i + 1} could not be loaded. Remove it or import it again.`); }
   }
   LAYOUT.clear();
@@ -1823,17 +1894,25 @@ function openExport() {
       if (P.w * P.h > 16000000) throw new Error(`${P.w} × ${P.h} px is too large for this device to export. Choose a smaller size in Canvas settings (about 4000 × 4000 max).`);
       p(0.02, 'Loading fonts and images…'); await prepareForExport(idxs);
       const isPdf = st.fmt === 'pdf', ext = isPdf ? 'jpg' : st.fmt, files = [];
-      for (let k = 0; k < idxs.length; k++) {
-        const i = idxs[k]; p(0.05 + 0.8 * k / idxs.length, `Rendering slide ${i + 1} (${k + 1} of ${idxs.length})…`); await nextFrame();
-        try { files.push({ name: `zon-slide-${pad2(i + 1)}.${ext}`, blob: await renderToBlob(P.slides[i], ext, st.q, st.transparent) }); }
-        catch (e) { throw new Error(`Slide ${i + 1} could not be exported. ${e.message || ''}`.trim()); }
-      }
+      // render + encode several slides at once: drawing is quick, PNG/JPG encoding runs off the main thread
+      const out = new Array(idxs.length); let nextK = 0, doneK = 0;
+      const worker = async () => {
+        while (nextK < idxs.length) {
+          const k = nextK++, i = idxs[k];
+          try { out[k] = { name: `zon-slide-${pad2(i + 1)}.${ext}`, blob: await renderToBlob(P.slides[i], ext, st.q, st.transparent) }; }
+          catch (e) { throw new Error(`Slide ${i + 1} could not be exported. ${e.message || ''}`.trim()); }
+          doneK++; p(0.05 + 0.85 * doneK / idxs.length, `Rendered ${doneK} of ${idxs.length} slides…`);
+          await sleep(0);
+        }
+      };
+      p(0.05, 'Rendering slides…');
+      await Promise.all(Array.from({ length: Math.min(3, idxs.length) }, worker));
+      files.push(...out);
       let result;
       if (isPdf) { p(0.9, 'Building PDF…'); const pdf = await makePdf(files.map(f => f.blob), P.w, P.h); result = { blob: pdf, filename: 'zon-slides.pdf', count: files.length, check: null, files: [], pdf: true }; }
       else if (files.length === 1 && st.range === 'one') result = { blob: files[0].blob, filename: files[0].name, count: 1, check: null, files };
       else {
-        p(0.88, 'Packing ZIP…'); const zip = await makeZip(files);
-        p(0.95, 'Checking every image opens…'); const check = await verifyZip(zip, P.w, P.h, files.map(f => f.name));
+        p(0.92, 'Packing ZIP…'); const zip = await makeZip(files); const check = null;
         result = { blob: zip, filename: 'zon-slides.zip', count: files.length, check, files };
       }
       p(1, 'Done'); st.result = result; st.busy = false; if (!st.closed) draw();
@@ -1991,20 +2070,14 @@ function openSettings() {
         h('div', { class: 'row' },
           h('div', { class: 'fld grow' }, h('label', null, 'Size for new projects'), h('select', { class: 'text', 'aria-label': 'Default size', value: SET.defSize, onchange: e => { SET.defSize = e.target.value; saveSettings(); } }, SIZES.map(z => h('option', { value: `${z.w}x${z.h}` }, `${z.n} ${z.r} · ${z.w}×${z.h}`)))),
           h('div', { class: 'fld' }, h('label', null, 'Export format'), seg([['png', 'PNG'], ['jpg', 'JPG']], SET.fmt, v => { SET.fmt = v; saveSettings(); draw(); })))),
-      sec('About',
-        h('div', { class: 'row' },
-          h('button', { type: 'button', class: 'btn', onclick: () => openLegal('about') }, 'About us'),
-          h('button', { type: 'button', class: 'btn', onclick: () => openLegal('policy') }, 'Privacy and terms'))),
       sec('Fonts',
         h('p', { class: 'tinyp' }, `${Object.values(FONT_CATS).flat().length} free fonts are built in. Fonts you import live inside your project.`),
         P.fonts.length ? h('div', { class: 'rowlist' }, P.fonts.map(f => h('div', { class: 'proj' }, h('div', { class: 'nm' }, h('b', { style: { fontFamily: fontFamily(f.name) } }, f.name), h('span', null, 'Imported font')), ibtn('trash', 'Remove font', () => { P.fonts = P.fonts.filter(x => x !== f); flushCommit(); P.slides.forEach(s => s.objects.forEach(o => { if (o.font === f.name) o.font = 'Montserrat'; })); LAYOUT.clear(); commit(); render(); refreshThumbs(); draw(); })))) : h('p', { class: 'tinyp' }, 'No imported fonts in this project.'),
         h('button', { type: 'button', class: 'btn', html: ic('upload', 18) + '<span>Import font file</span>', onclick: () => $('#fFont').click() })),
-      sec('Launch',
-        toggle('Show the logo animation when the app opens', SET.intro, v => { SET.intro = v; saveSettings(); }),
-        h('button', { type: 'button', class: 'btn', onclick: () => { m.close(); runSplash(true); } }, 'Play intro now')),
       sec('Data',
         h('button', { type: 'button', class: 'btn danger', disabled: idx && idx.length ? null : true, onclick: async () => { if (!armed) { armed = true; draw(); return; } try { for (const r of idx) await idb.del('proj:' + r.id); await idb.set('index', []); toast('All saved projects deleted'); } catch { toast('Could not delete'); } armed = false; draw(); } }, armed ? 'Tap again to delete ' + (idx ? idx.length : 0) + ' saved project(s)' : 'Delete all saved projects'),
-        h('button', { type: 'button', class: 'btn', onclick: () => { Object.assign(SET, SET_DEF); saveSettings(); applyTheme(); syncHeader(); draw(); } }, 'Reset settings to defaults')));
+        h('button', { type: 'button', class: 'btn', onclick: () => { Object.assign(SET, SET_DEF); saveSettings(); applyTheme(); syncHeader(); draw(); } }, 'Reset settings to defaults')),
+      h('div', { class: 'legal' }, h('button', { type: 'button', onclick: () => openLegal('about') }, 'About us'), ' · ', h('button', { type: 'button', onclick: () => openLegal('policy') }, 'Privacy and terms')));
   };
   draw();
 }
@@ -2034,6 +2107,12 @@ $('#fImg').addEventListener('change', async e => {
 $('#fBg').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try { const id = await importImage(f); const bg = slide().bg; bg.img = id; bg.type = 'image'; bg.fit = 'cover'; commit(); render(); refreshThumbs(); S.panel = 'backdrop'; S.tab = 'Image'; buildPanel(); }
+  catch (err) { toast(err.message || 'Could not import that image'); }
+});
+$('#fFill').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  const o = selObj(); if (!o || (o.type !== 'shape' && o.type !== 'sticker')) return;
+  try { const id = await importImage(f); o.src = id; o.fimg = { zoom: 1, px: 0, py: 0 }; if (o.type === 'shape') o.fill.mode = 'image'; commit(); render(); refreshThumbs(); buildPanel(); }
   catch (err) { toast(err.message || 'Could not import that image'); }
 });
 $('#fTex').addEventListener('change', async e => {

@@ -51,6 +51,11 @@ jobs:
       - name: Use the new Zon logo for icon and splash
         run: node icons.mjs
 
+      - name: Use a new app id so it installs next to the old app
+        run: |
+          sed -i 's/com\.zonstudio\.editor/com.zongroupdev.zonstudio/' capacitor.config.json
+          grep appId capacitor.config.json
+
       - name: Create the Android project
         run: npx cap add android
 

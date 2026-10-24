@@ -4,10 +4,20 @@ on:
   push:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      release:
+        description: 'Also publish a GitHub release with the APK'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
 
 jobs:
   apk:
     runs-on: ubuntu-latest
+    env:
+      BUILD_NO: ${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
 
@@ -20,8 +30,20 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Put the build number into the app
+        run: |
+          sed -i "s/const APP_VERSION = '[^']*'/const APP_VERSION = '1.5.$BUILD_NO'/" index.html
+          grep -n "const APP_VERSION" index.html
+
       - name: Install tools
         run: npm install
+
+      - name: Add the Gallery-saving plugin (matched to your Capacitor version)
+        continue-on-error: true
+        run: |
+          V=$(node pick-media.mjs || echo latest)
+          echo "Using @capacitor-community/media@$V"
+          npm install @capacitor-community/media@$V --no-audit --no-fund
 
       - name: Prepare icon, splash and offline app (downloads fonts once)
         run: node build.mjs
@@ -31,6 +53,12 @@ jobs:
 
       - name: Create the Android project
         run: npx cap add android
+
+      - name: Set the Android version number
+        run: |
+          G=android/app/build.gradle
+          sed -i "s/versionCode [0-9]\+/versionCode $((BUILD_NO + 100))/; s/versionName \"[^\"]*\"/versionName \"1.5.$BUILD_NO\"/" $G
+          grep -n "versionCode\|versionName" $G
 
       - name: Apply icon and splash screen
         run: npx capacitor-assets generate --android
@@ -49,9 +77,23 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      - name: Name the APK with its version
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "zon-studio-v1.5.$BUILD_NO.apk"
+
       - name: Upload the APK
         uses: actions/upload-artifact@v4
         with:
           name: zon-studio-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: zon-studio-v1.5.${{ github.run_number }}.apk
           if-no-files-found: error
+
+      - name: Publish a GitHub release
+        if: github.event_name == 'workflow_dispatch' && inputs.release
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v1.5.$BUILD_NO"
+          gh release create "$TAG" --draft --target "$GITHUB_SHA" --title "Zon Studio $TAG" --notes "Zon Studio build $BUILD_NO"
+          gh release upload "$TAG" "zon-studio-v1.5.$BUILD_NO.apk"
+          gh release edit "$TAG" --draft=false

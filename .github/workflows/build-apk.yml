@@ -26,6 +26,9 @@ jobs:
       - name: Prepare icon, splash and offline app (downloads fonts once)
         run: node build.mjs
 
+      - name: Use the new Zon logo for icon and splash
+        run: node icons.mjs
+
       - name: Create the Android project
         run: npx cap add android
 
@@ -39,7 +42,7 @@ jobs:
         run: |
           mkdir -p ~/.android
           cp debug.keystore ~/.android/debug.keystore
-      
+
       - name: Build the APK
         working-directory: android
         run: |

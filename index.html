@@ -233,7 +233,7 @@ img.lg{display:block;object-fit:contain}img.lg.anim{animation:lgIn .8s cubic-bez
 <input type="file" id="fTex" accept="image/*" hidden>
 <input type="file" id="fFill" accept="image/*" hidden>
 <input type="file" id="fFont" accept=".ttf,.otf,.woff,.woff2,font/*" hidden>
-<input type="file" id="fProj" accept=".json,.zip,application/json,application/zip,application/x-zip-compressed" hidden>
+<input type="file" id="fProj" hidden>
 
 <script>
 (() => {
@@ -397,12 +397,37 @@ const STICKERS = [
   { id: 'cursor', n: 'Pointer', d: 'M4 2l16 9-7 2-2 7z' },
   { id: 'paw', n: 'Paw', d: 'M12 13c-3 0-6 2.5-6 5 0 2 1.8 3 3.2 3 1 0 1.8-.4 2.8-.4s1.8.4 2.8.4c1.4 0 3.2-1 3.2-3 0-2.5-3-5-6-5zM5.5 9a2 2.5 0 100 5 2 2.5 0 000-5zM18.5 9a2 2.5 0 100 5 2 2.5 0 000-5zM9 3a2 2.5 0 100 5 2 2.5 0 000-5zM15 3a2 2.5 0 100 5 2 2.5 0 000-5z' },
   { id: 'diamond', n: 'Diamond', d: 'M12 1l11 11-11 11L1 12z' },
-  { id: 'hexa', n: 'Hexagon', d: 'M12 1.5l9 5.25v10.5L12 22.5l-9-5.25V6.75z' }
+  { id: 'hexa', n: 'Hexagon', d: 'M12 1.5l9 5.25v10.5L12 22.5l-9-5.25V6.75z' },
+  { id: 'arrowL', n: 'Arrow left', d: 'M20 11H7.8l4.6-4.6L11 5l-7 7 7 7 1.4-1.4L7.8 13H20z' },
+  { id: 'arrowU', n: 'Arrow up', d: 'M11 20V7.8L6.4 12.4 5 11l7-7 7 7-1.4 1.4L13 7.8V20z' },
+  { id: 'arrowD', n: 'Arrow down', d: 'M13 4v12.2l4.6-4.6L19 13l-7 7-7-7 1.4-1.4L11 16.2V4z' },
+  { id: 'scallop', n: 'Scallop', d: 'M12 3.4A3.3 3.3 0 0 1 16.3 4.55A3.3 3.3 0 0 1 19.45 7.7A3.3 3.3 0 0 1 20.6 12A3.3 3.3 0 0 1 19.45 16.3A3.3 3.3 0 0 1 16.3 19.45A3.3 3.3 0 0 1 12 20.6A3.3 3.3 0 0 1 7.7 19.45A3.3 3.3 0 0 1 4.55 16.3A3.3 3.3 0 0 1 3.4 12A3.3 3.3 0 0 1 4.55 7.7A3.3 3.3 0 0 1 7.7 4.55A3.3 3.3 0 0 1 12 3.4z' },
+  { id: 'rays', n: 'Sunburst', d: 'M23.5 12L18.08 10.77L18.08 13.23zM21.96 17.75L17.88 13.97L16.65 16.1zM17.75 21.96L16.1 16.65L13.97 17.88zM12 23.5L13.23 18.08L10.77 18.08zM6.25 21.96L10.03 17.88L7.9 16.65zM2.04 17.75L7.35 16.1L6.12 13.97zM0.5 12L5.92 13.23L5.92 10.77zM2.04 6.25L6.12 10.03L7.35 7.9zM6.25 2.04L7.9 7.35L10.03 6.12zM12 0.5L10.77 5.92L13.23 5.92zM17.75 2.04L13.97 6.12L16.1 7.35zM21.96 6.25L16.65 7.9L17.88 10.03zM7.8 12a4.2 4.2 0 1 0 8.4 0a4.2 4.2 0 1 0 -8.4 0z' },
+  { id: 'clover', n: 'Clover', d: 'M7.2 7.2a4.8 4.8 0 1 0 9.6 0a4.8 4.8 0 1 0 -9.6 0zM7.2 16.8a4.8 4.8 0 1 0 9.6 0a4.8 4.8 0 1 0 -9.6 0zM2.4 12a4.8 4.8 0 1 0 9.6 0a4.8 4.8 0 1 0 -9.6 0zM12 12a4.8 4.8 0 1 0 9.6 0a4.8 4.8 0 1 0 -9.6 0z' },
+  { id: 'gift', n: 'Gift', d: 'M3 8h18v4H3zM4.5 13h15v8h-15zM11 8h2v13h-2zM12 8C9 8 7.2 6.8 7.2 5.2S9 2.8 10.2 3.8 12 8 12 8zM12 8c3 0 4.8-1.2 4.8-2.8s-1.8-2.4-3-1.4S12 8 12 8z' },
+  { id: 'mega', n: 'Megaphone', d: 'M3 8.500h4.500l9-5v17l-9-5H3zM5 15h3l1.200 5.500H6.400zM18.500 9.500a3.500 3.500 0 0 1 0 5z' },
+  { id: 'ticket', n: 'Ticket', d: 'M2 5h20v4.700a2.300 2.300 0 0 0 0 4.600V19H2v-4.700a2.300 2.300 0 0 0 0-4.600z' },
+  { id: 'verified', n: 'Verified', d: 'M12 3.4A3.3 3.3 0 0 1 16.3 4.55A3.3 3.3 0 0 1 19.45 7.7A3.3 3.3 0 0 1 20.6 12A3.3 3.3 0 0 1 19.45 16.3A3.3 3.3 0 0 1 16.3 19.45A3.3 3.3 0 0 1 12 20.6A3.3 3.3 0 0 1 7.7 19.45A3.3 3.3 0 0 1 4.55 16.3A3.3 3.3 0 0 1 3.4 12A3.3 3.3 0 0 1 4.55 7.7A3.3 3.3 0 0 1 7.7 4.55A3.3 3.3 0 0 1 12 3.4zM10.600 15.800L7 12.200l1.400-1.400 2.200 2.200 5-5 1.400 1.400z', eo: true },
+  { id: 'percent', n: 'Percent', d: 'M12 3.4A3.3 3.3 0 0 1 16.3 4.55A3.3 3.3 0 0 1 19.45 7.7A3.3 3.3 0 0 1 20.6 12A3.3 3.3 0 0 1 19.45 16.3A3.3 3.3 0 0 1 16.3 19.45A3.3 3.3 0 0 1 12 20.6A3.3 3.3 0 0 1 7.7 19.45A3.3 3.3 0 0 1 4.55 16.3A3.3 3.3 0 0 1 3.4 12A3.3 3.3 0 0 1 4.55 7.7A3.3 3.3 0 0 1 7.7 4.55A3.3 3.3 0 0 1 12 3.4zM7.5 9.2a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0 -3.4 0zM13.1 14.8a1.7 1.7 0 1 0 3.4 0a1.7 1.7 0 1 0 -3.4 0zM16.300 7.200l1.300 1.300-9.900 9.900-1.300-1.300z', eo: true },
+  { id: 'playc', n: 'Play circle', d: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM9.500 7.300L17 12l-7.500 4.700z', eo: true },
+  { id: 'pausec', n: 'Pause circle', d: 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM9 8h2.200v8H9zM12.800 8H15v8h-2.200z', eo: true },
+  { id: 'dots', n: 'Chat dots', d: 'M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM7.500 9a1.400 1.400 0 1 0 0 2.800 1.400 1.400 0 0 0 0-2.800zm4.500 0a1.400 1.400 0 1 0 0 2.800A1.400 1.400 0 0 0 12 9zm4.500 0a1.400 1.400 0 1 0 0 2.800 1.400 1.400 0 0 0 0-2.800z', eo: true },
+  { id: 'balloon', n: 'Balloon', d: 'M12 2C7.800 2 5 5.200 5 9c0 3.800 3 7.200 6.200 7.800L10.300 19h3.400l-.9-2.200C16 16.200 19 12.800 19 9c0-3.800-2.800-7-7-7zM11 19.500h2V22h-2z' },
+  { id: 'sparkles', n: 'Sparkles', d: 'M9 3l1.800 5.200L16 10l-5.200 1.800L9 17l-1.800-5.200L2 10l5.200-1.800zM18 12l1 3 3 1-3 1-1 3-1-3-3-1 3-1zM17.500 2l.8 2.200 2.200.8-2.200.8-.8 2.200-.8-2.200-2.200-.8 2.200-.8z' },
+  { id: 'wifi', n: 'Wi-Fi', d: 'M8.75 15.75A4.6 4.6 0 0 1 15.25 15.75L13.56 17.44A2.2 2.2 0 0 0 10.44 17.44zM6.06 13.06A8.4 8.4 0 0 1 17.94 13.06L16.24 14.76A6 6 0 0 0 7.76 14.76zM3.51 10.51A12 12 0 0 1 20.49 10.51L18.79 12.21A9.6 9.6 0 0 0 5.21 12.21zM10.1 19a1.9 1.9 0 1 0 3.8 0a1.9 1.9 0 1 0 -3.8 0z' },
+  { id: 'battery', n: 'Battery', d: 'M3 7h15a1 1 0 0 1 1 1v1.500h2v5h-2V16a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM4.500 9v6h10V9z', eo: true },
+  { id: 'umbrella', n: 'Umbrella', d: 'M12 2C6.500 2 2 6.200 2 11.500h10.400V18a1.500 1.500 0 0 0 3 0h-1.500a.1.1 0 0 1-.1-.1V11.500H22C22 6.200 17.500 2 12 2z' },
+  { id: 'pie', n: 'Pie chart', d: 'M11 3.100V13h9.900A9.900 9.900 0 0 0 11 3.100zM9 5.200A9.200 9.200 0 1 0 18.800 15H9z' },
+  { id: 'hash', n: 'Hashtag', d: 'M9.300 3L8.600 8H4v2.200h4.300l-.6 3.800H3.500v2.200h3.900L6.800 21h2.200l.7-4.800h3.800l-.7 4.800h2.200l.7-4.800h3.900V14h-3.600l.6-3.800h4V8h-3.700l.7-5h-2.200l-.7 5H11.500l.7-5zM10.700 10.200h3.800L13.900 14h-3.800z', eo: true },
+  { id: 'infinity', n: 'Infinity', d: 'M18.200 7.500c-2.300 0-3.800 1.600-6.200 4.500-2.400-2.900-3.900-4.500-6.200-4.500a4.500 4.500 0 1 0 0 9c2.300 0 3.800-1.600 6.200-4.500 2.400 2.900 3.900 4.500 6.200 4.500a4.500 4.500 0 1 0 0-9zM5.800 14.700a2.700 2.700 0 1 1 0-5.400c1.300 0 2.300 1 4 2.700-1.700 1.700-2.700 2.700-4 2.700zm12.400 0c-1.300 0-2.300-1-4-2.700 1.700-1.700 2.700-2.700 4-2.700a2.700 2.700 0 1 1 0 5.400z', eo: true },
+  { id: 'crescentStar', n: 'Moon & star', d: 'M20 14.500A8.500 8.500 0 1 1 9.500 4a6.600 6.600 0 0 0 10.500 10.500zM18.200 2l.9 2.500 2.600.9-2.600.9-.9 2.600-.9-2.600-2.600-.9 2.600-.9z' }
 ];
 const SHAPES = [['rect', 'Rectangle'], ['round', 'Rounded'], ['circle', 'Circle'], ['ring', 'Ring'], ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['hexagon', 'Hexagon'], ['star', 'Star'], ['heart', 'Heart'], ['arrow', 'Arrow'], ['plus', 'Cross'], ['line', 'Line'],
-  ['pentagon', 'Pentagon'], ['octagon', 'Octagon'], ['parallelogram', 'Slant'], ['trapezoid', 'Trapezoid'], ['rtriangle', 'Right triangle'], ['star4', 'Star 4'], ['star6', 'Star 6'], ['burst', 'Burst'], ['badge', 'Seal'], ['chevron', 'Chevron'], ['arrow2', 'Two-way arrow'], ['lightning', 'Lightning'], ['cloud', 'Cloud'], ['moon', 'Moon'], ['semicircle', 'Half circle'], ['quarter', 'Quarter'], ['drop', 'Drop'], ['bubble', 'Speech'], ['flower', 'Flower'], ['gear', 'Gear'], ['blob', 'Blob'], ['squircle', 'Squircle'], ['pill', 'Pill'], ['frame', 'Frame'], ['shield', 'Shield'], ['ribbon', 'Banner'], ['arch', 'Arch'], ['tag', 'Label'], ['house', 'House'], ['leaf', 'Leaf'], ['pin', 'Pin']];
-const SHAPE_W = { arrow: 1.3, arrow2: 1.4, chevron: 1.2, parallelogram: 1.2, trapezoid: 1.2, ribbon: 1.3, tag: 1.3, pill: 1.3, cloud: 1.2, semicircle: 1.2, bubble: 1.1 };
-const SHAPE_H = { rect: 0.7, round: 0.7, pill: 0.45, parallelogram: 0.6, trapezoid: 0.65, ribbon: 0.55, tag: 0.6, semicircle: 0.5, cloud: 0.7, bubble: 0.8, chevron: 0.8, arrow2: 0.8 };
+  ['pentagon', 'Pentagon'], ['octagon', 'Octagon'], ['parallelogram', 'Slant'], ['trapezoid', 'Trapezoid'], ['rtriangle', 'Right triangle'], ['star4', 'Star 4'], ['star6', 'Star 6'], ['burst', 'Burst'], ['badge', 'Seal'], ['chevron', 'Chevron'], ['arrow2', 'Two-way arrow'], ['lightning', 'Lightning'], ['cloud', 'Cloud'], ['moon', 'Moon'], ['semicircle', 'Half circle'], ['quarter', 'Quarter'], ['drop', 'Drop'], ['bubble', 'Speech'], ['flower', 'Flower'], ['gear', 'Gear'], ['blob', 'Blob'], ['squircle', 'Squircle'], ['pill', 'Pill'], ['frame', 'Frame'], ['shield', 'Shield'], ['ribbon', 'Banner'], ['arch', 'Arch'], ['tag', 'Label'], ['house', 'House'], ['leaf', 'Leaf'], ['pin', 'Pin'],
+  ['arrowL', 'Arrow left'], ['arrowU', 'Arrow up'], ['arrowD', 'Arrow down'], ['ticket', 'Ticket'], ['kite', 'Kite'], ['wave', 'Wave'], ['cross2', 'Rounded cross'], ['scallop', 'Scallop'], ['star8', 'Star 8']];
+const SHAPE_SVG = { ticket: 'M0 3h24v6.500a2.500 2.500 0 0 0 0 5V21H0v-6.500a2.500 2.500 0 0 0 0-5z', kite: 'M12 0l10.500 9L12 24 1.500 9z', wave: 'M0 11C4 5 8 5 12 11s8 6 12 0V24H0z', cross2: 'M8 0h8v8h8v8h-8v8H8v-8H0V8h8z', scallop: 'M12 1.2A4.2 4.2 0 0 1 17.4 2.65A4.2 4.2 0 0 1 21.35 6.6A4.2 4.2 0 0 1 22.8 12A4.2 4.2 0 0 1 21.35 17.4A4.2 4.2 0 0 1 17.4 21.35A4.2 4.2 0 0 1 12 22.8A4.2 4.2 0 0 1 6.6 21.35A4.2 4.2 0 0 1 2.65 17.4A4.2 4.2 0 0 1 1.2 12A4.2 4.2 0 0 1 2.65 6.6A4.2 4.2 0 0 1 6.6 2.65A4.2 4.2 0 0 1 12 1.2z', star8: 'M12 0L14.76 5.35L20.49 3.51L18.65 9.24L24 12L18.65 14.76L20.49 20.49L14.76 18.65L12 24L9.24 18.65L3.51 20.49L5.35 14.76L0 12L5.35 9.24L3.51 3.51L9.24 5.35z' };
+const SHAPE_W = { arrow: 1.3, arrow2: 1.4, chevron: 1.2, parallelogram: 1.2, trapezoid: 1.2, ribbon: 1.3, tag: 1.3, pill: 1.3, cloud: 1.2, semicircle: 1.2, bubble: 1.1, ticket: 1.3 };
+const SHAPE_H = { rect: 0.7, round: 0.7, pill: 0.45, parallelogram: 0.6, trapezoid: 0.65, ribbon: 0.55, tag: 0.6, semicircle: 0.5, cloud: 0.7, bubble: 0.8, chevron: 0.8, arrow2: 0.8, ticket: 0.75, wave: 0.8 };
 const SHAPE_NAME = Object.fromEntries(SHAPES);
 
 /* ============ state ============ */
@@ -647,6 +672,10 @@ function shapePath(o) {
       p.closePath(); break;
     }
     case 'line': p.moveTo(-w / 2, 0); p.lineTo(w / 2, 0); break;
+    case 'arrowL': poly(p, [[1, -0.3], [-0.1, -0.3], [-0.1, -0.85], [-1, 0], [-0.1, 0.85], [-0.1, 0.3], [1, 0.3]], w, h); break;
+    case 'arrowU': poly(p, [[-0.3, 1], [-0.3, -0.1], [-0.85, -0.1], [0, -1], [0.85, -0.1], [0.3, -0.1], [0.3, 1]], w, h); break;
+    case 'arrowD': poly(p, [[-0.3, -1], [-0.3, 0.1], [-0.85, 0.1], [0, 1], [0.85, 0.1], [0.3, 0.1], [0.3, -1]], w, h); break;
+    default: if (SHAPE_SVG[o.kind]) p.addPath(new Path2D(SHAPE_SVG[o.kind]), new DOMMatrix([w / 24, 0, 0, h / 24, -w / 2, -h / 2]));
     case 'pentagon': ngon(p, 5, w, h); break;
     case 'octagon': ngon(p, 8, w, h, -22.5); break;
     case 'parallelogram': poly(p, [[-0.6, -1], [1, -1], [0.6, 1], [-1, 1]], w, h); break;
@@ -849,6 +878,8 @@ function drawText(ctx, o) {
   const paint = (dx, dy, mode) => { for (let i = 0; i < lines.length; i++) paintLine(i, dx, dy, mode); };
   let shadowUsed = false;
   const sh = () => { if (o.shadow.on && !shadowUsed) { applyShadow(ctx, o.shadow); shadowUsed = true; } else clearShadow(ctx); };
+  if (o.neon && o.neon.on) { const c = o.neon.c || '#00f0ff', b = o.size * 0.16 * (o.neon.k || 1); ctx.save(); ctx.fillStyle = c; for (const m of [1.4, 0.8, 0.35]) { ctx.shadowColor = c; ctx.shadowBlur = b * m * CUR_K; ctx.shadowOffsetX = 0; ctx.shadowOffsetY = 0; paint(0, 0, 'f'); } ctx.restore(); }
+  if (o.glitch && o.glitch.on) { const d = Math.max(2, o.size * 0.03 * (o.glitch.k || 1)); ctx.save(); ctx.globalAlpha *= 0.85; ctx.fillStyle = '#ff2d55'; paint(-d, -d * 0.3, 'f'); ctx.fillStyle = '#00e5ff'; paint(d, d * 0.3, 'f'); ctx.restore(); }
   if (o.ext.on) {
     const n = Math.max(1, Math.round(o.ext.depth)), a = rad(o.ext.angle), step = Math.max(1, n / 60);
     ctx.fillStyle = o.ext.color; ctx.strokeStyle = o.ext.color;
@@ -968,6 +999,26 @@ function drawFx(ctx, fx, W, H) {
   if (fx.str > 0) { const p = ctx.createPattern(STRIPE, 'repeat'); p.setTransform(new DOMMatrix().scale(2)); ctx.save(); ctx.globalAlpha = clamp(fx.str, 0, 1) * 0.5; ctx.fillStyle = p; ctx.fillRect(0, 0, W, H); ctx.restore(); }
 }
 function visualObjs(sl) { return sl.objects.some(o => o.aboveFx) ? [...sl.objects.filter(o => !o.aboveFx), ...sl.objects.filter(o => o.aboveFx)] : sl.objects; }
+function drawDeco(ctx, sl, W, H) {
+  const d = P.deco; if (!d) return; const i = P.slides.indexOf(sl), n = P.slides.length; if (i < 0) return;
+  const m = W * 0.045, fs = W * 0.027, at = (pos, w) => pos === 'l' ? m : pos === 'r' ? W - m - w : (W - w) / 2;
+  ctx.save(); ctx.textBaseline = 'middle'; ctx.font = `600 ${fs}px Montserrat, sans-serif`;
+  if (d.num && d.num.on) { const t = (i + 1) + ' / ' + n; ctx.fillStyle = d.num.col; ctx.globalAlpha = 0.85; ctx.fillText(t, at(d.num.pos, ctx.measureText(t).width), H - m); }
+  if (d.swipe && d.swipe.on && i < n - 1) {
+    const t = 'SWIPE', tw = ctx.measureText(t).width, aw = fs * 2.2, x0 = at(d.swipe.pos, tw + fs * 0.6 + aw), y = H - m, ax = x0 + tw + fs * 0.6;
+    ctx.fillStyle = ctx.strokeStyle = d.swipe.col; ctx.globalAlpha = 0.9; ctx.fillText(t, x0, y);
+    ctx.lineWidth = fs * 0.16; ctx.lineCap = ctx.lineJoin = 'round'; ctx.beginPath(); ctx.moveTo(ax, y); ctx.lineTo(ax + aw, y); ctx.moveTo(ax + aw - fs * 0.5, y - fs * 0.5); ctx.lineTo(ax + aw, y); ctx.lineTo(ax + aw - fs * 0.5, y + fs * 0.5); ctx.stroke();
+  }
+  ctx.restore();
+}
+function decoUI() {
+  const d = P.deco = P.deco || { num: { on: false, pos: 'l', col: '#ffffff' }, swipe: { on: false, pos: 'r', col: '#ffffff' } };
+  const ap = () => { commit(); render(); refreshThumbs(); buildPanel(); };
+  const chip = (o, k, v, t) => h('button', { type: 'button', class: 'chip' + (o[k] === v ? ' on' : ''), onclick: () => { o[k] = v; ap(); } }, t);
+  const row = (key, label) => { const o = d[key]; return h('div', { class: 'fld' }, toggle(label, o.on, v => { o.on = v; ap(); }), o.on ? h('div', { class: 'row' }, chip(o, 'pos', 'l', 'Left'), chip(o, 'pos', 'c', 'Centre'), chip(o, 'pos', 'r', 'Right'), chip(o, 'col', '#ffffff', 'White'), chip(o, 'col', '#111111', 'Black')) : null); };
+  return h('div', { class: 'fld' }, h('label', null, 'On every slide'), row('num', 'Page numbers'), row('swipe', 'Swipe arrow (not on the last slide)'));
+}
+function visualObjs(sl) { return sl.objects.some(o => o.aboveFx) ? [...sl.objects.filter(o => !o.aboveFx), ...sl.objects.filter(o => o.aboveFx)] : sl.objects; }
 function renderSlide(ctx, sl, W, H, opt = {}) {
   CUR_K = opt.k || 1;
   if (opt.transparent) ctx.clearRect(0, 0, W, H); else drawBg(ctx, sl.bg, W, H);
@@ -975,6 +1026,7 @@ function renderSlide(ctx, sl, W, H, opt = {}) {
   drawAll(sl.objects.filter(o => !o.aboveFx));
   if (!opt.transparent) drawFx(ctx, sl.fx, W, H); // effects sit between the two groups, so any layer can go above them
   drawAll(sl.objects.filter(o => o.aboveFx));
+  drawDeco(ctx, sl, W, H);
 }
 
 /* ============ editor canvas ============ */
@@ -1106,8 +1158,9 @@ const toLocal = (o, p) => { const a = -rad(o.rot), dx = p.x - o.x, dy = p.y - o.
 const inBox = (o, p, pad = 0) => { const l = toLocal(o, p); return Math.abs(l.x) <= o.w / 2 + pad && Math.abs(l.y) <= o.h / 2 + pad; };
 function topHit(p) { if (!slide() || slide().locked) return null; const a = visualObjs(slide()); for (let i = a.length - 1; i >= 0; i--) { const o = a[i]; if (!o.hidden && !(o.locked && o.type !== 'text') && inBox(o, p, 4 / (V.scale * V.zoom))) return o; } return null; }
 function hitHandle(o, p) {
-  const l = toLocal(o, p), r = 24 / (V.scale * V.zoom); let best = null, bd = 1e9;
-  for (const hd of handlesOf(o)) { const d = Math.hypot(l.x - hd.x, l.y - hd.y); if (d < r && d < bd) { best = hd; bd = d; } }
+  const l = toLocal(o, p), ps = V.scale * V.zoom, small = Math.max(8, Math.min(o.w, o.h) * ps / 4); let best = null, bd = 1e9;
+  // grab zones are only a little bigger than the dots you see, so a finger on the object moves it instead of resizing it
+  for (const hd of handlesOf(o)) { const rr2 = Math.min(hd.k === 'rot' ? 20 : hd.k === 'corner' ? 17 : 13, hd.k === 'rot' ? 99 : small) / ps, d = Math.hypot(l.x - hd.x, l.y - hd.y); if (d < rr2 && d < bd) { best = hd; bd = d; } }
   return best;
 }
 const bbox = o => { const a = rad(o.rot), c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a)), w = o.w * c + o.h * sn, h = o.w * sn + o.h * c; return { l: o.x - w / 2, r: o.x + w / 2, t: o.y - h / 2, b: o.y + h / 2, cx: o.x, cy: o.y }; };
@@ -1154,6 +1207,8 @@ function eraseAt(o, p, first) {
   requestRender();
 }
 stage.addEventListener('pointerdown', e => {
+  // a new first finger means every earlier touch is over, even if its lift was missed
+  if (e.isPrimary) { ptrs.clear(); if (pin) endPinch(); if (drag) endDrag({ pointerId: drag.id, clientX: drag.cx0, clientY: drag.cy0 }, true); }
   ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (ptrs.size === 2) { startPinch(); return; }
   if (ptrs.size > 2 || pin) return;
@@ -1167,8 +1222,14 @@ stage.addEventListener('pointerdown', e => {
       const hd = hitHandle(o, p);
       if (hd) { Object.assign(drag, { mode: hd.k, hd, obj: o, start: { x: o.x, y: o.y, w: o.w, h: o.h, size: o.size, rot: o.rot, d0: Math.hypot(p.x - o.x, p.y - o.y) || 1 } }); return; }
     }
-    const t = topHit(p); // the topmost object under the finger wins, like other mobile editors
-    if (t) {
+    const t = topHit(p);
+    // the selected object keeps the finger when it is on it or close to it, even if other objects lie on top;
+    // a plain tap (no drag) still picks the top object, or clears the selection when nothing is there
+    if (o && !o.locked && !o.hidden && t !== o && inBox(o, p, 22 / (V.scale * V.zoom))) {
+      drag.wasSel = true; drag.obj = o; drag.mode = 'move'; drag.start = { x: o.x, y: o.y }; drag.tapTarget = t || null; drag.padTap = !t;
+      return;
+    }
+    if (t) { // the topmost object under the finger wins, like other mobile editors
       drag.wasSel = t.id === S.selId; drag.obj = t;
       if (!drag.wasSel) selectObj(t.id);
       drag.mode = t.locked ? 'locked' : 'move'; drag.start = { x: t.x, y: t.y };
@@ -1221,6 +1282,11 @@ function endDrag(e, cancelled) {
     else requestRender();
     return;
   }
+  if (!d.moved && !cancelled && d.mode === 'move' && 'tapTarget' in d) {
+    if (d.tapTarget) selectObj(d.tapTarget.id);
+    else if (d.padTap) { S.selId = null; if (S.panel === 'object') S.panel = null; buildPanel(); syncTools(); }
+    requestRender(); return;
+  }
   if (d.moved && ['move', 'corner', 'edge', 'rot'].includes(d.mode)) commit();
   else if (!d.moved && (d.mode === 'move' || d.mode === 'locked') && d.obj.type === 'text') {
     const now = Date.now(), dbl = d.obj.id === lastTapId && now - lastTap < 450;
@@ -1235,6 +1301,11 @@ function endDrag(e, cancelled) {
 const upPtr = (e, c) => { ptrs.delete(e.pointerId); if (pin) { if (ptrs.size < 2) endPinch(); return; } endDrag(e, c); };
 stage.addEventListener('pointerup', e => upPtr(e, false));
 stage.addEventListener('pointercancel', e => upPtr(e, true));
+// also finish the gesture if a finger is lifted outside the canvas or the system takes the touch
+window.addEventListener('pointerup', e => { if ((drag && e.pointerId === drag.id) || (pin && ptrs.has(e.pointerId))) upPtr(e, false); }, true);
+window.addEventListener('pointercancel', e => { if ((drag && e.pointerId === drag.id) || (pin && ptrs.has(e.pointerId))) upPtr(e, true); }, true);
+stage.addEventListener('lostpointercapture', e => { if (drag && e.pointerId === drag.id) upPtr(e, true); });
+window.addEventListener('blur', () => { ptrs.clear(); if (pin) endPinch(); if (drag) endDrag({ pointerId: drag.id, clientX: drag.cx0, clientY: drag.cy0 }, true); });
 stage.addEventListener('dblclick', e => {
   const o = selObj(); if (o && o.type === 'text') { S.tab = 'Text'; buildPanel(); const ta = $('#panel textarea'); if (ta) { ta.focus(); ta.select(); } }
 });
@@ -1493,7 +1564,7 @@ window.addEventListener('pointermove', e => { if (LP && Math.hypot(e.clientX - L
 ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, lpStop));
 /* ============ panels ============ */
 const TABS = {
-  text: ['Text', 'Style', 'Font', 'Size', 'Color', 'Stroke', 'Shadow', 'Gradient', 'Texture', 'Curve', '3D', 'Spacing', 'Tilt', 'Arrange'],
+  text: ['Text', 'Style', 'Font', 'Size', 'Color', 'Stroke', 'Shadow', 'Glow', 'Gradient', 'Texture', 'Curve', '3D', 'Spacing', 'Tilt', 'Arrange'],
   image: ['Adjust', 'Filters', 'Outline', 'Mask', 'Erase', 'Crop', 'Tilt', 'Shadow', 'Arrange'],
   shape: ['Fill', 'Stroke', 'Shape', 'Tilt', 'Shadow', 'Arrange'],
   sticker: ['Color', 'Gradient', 'Image', 'Tilt', 'Shadow', 'Arrange']
@@ -1539,13 +1610,44 @@ function shapesPanel() {
   });
   return [h('div', { class: 'grid' }, cells)];
 }
+const EMOJI_GROUPS = {"Smileys": "😀 😃 😄 😁 😆 😅 😂 🤣 😊 🙂 🙃 😉 😌 😍 🥰 😘 😗 😋 😛 😜 🤪 😎 🤓 🥳 🤩 😏 😒 😞 😔 😟 😕 🙁 😣 😖 😫 😩 🥺 😢 😭 😤 😠 😡 🤬 🤯 😳 🥵 🥶 😱 😨 😰 😓 🤗 🤔 🤭 🤫 🤥 😶 😐 😑 😬 🙄 😯 😴 🤤 😪 😵 🤐 🥴 🤢 🤮 🤧 😷 🤒 🤕 😇 🤠 🤡 👻 💀 👽 🤖 💩 😈", "Hands & people": "👍 👎 👌 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ ✋ 🤚 🖐️ 👋 👏 🙌 🤝 🙏 💪 ✍️ 🤳 💅 👀 👁️ 👅 👄 🧠 🦷 👶 👦 👧 👨 👩 🧑 👴 👵", "Hearts & symbols": "❤️ 🧡 💛 💚 💙 💜 🖤 🤍 🤎 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 💯 💢 💥 💫 💦 💨 🔥 ✨ ⭐ 🌟 ⚡ ✅ ❌ ❎ ⚠️ ❓ ❗ ➡️ ⬅️ ⬆️ ⬇️ ↗️ ↘️ 🔁 🔔 🔕 💬 💭 🔞 ♻️ ➕ ➖ ✔️ ☑️", "Nature & animals": "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🙈 🙉 🙊 🐔 🐧 🐦 🦆 🦅 🦉 🦇 🐺 🐴 🦄 🐝 🦋 🐌 🐞 🐢 🐍 🐙 🦀 🐠 🐬 🐳 🦈 🌸 🌹 🌺 🌻 🌷 🌱 🌿 🍀 🍁 🌴 🌵 🌍 🌙 ☀️ ⭐ ☁️ 🌈 ❄️ ⛄ 🌊", "Food & drink": "🍎 🍊 🍋 🍌 🍉 🍇 🍓 🍒 🍑 🍍 🥭 🥑 🍅 🥕 🌽 🍔 🍟 🍕 🌭 🌮 🍿 🍩 🍪 🎂 🍰 🍫 🍬 🍭 ☕ 🍵 🥤 🍺 🍷 🥂", "Fun & objects": "🎉 🎊 🎁 🎈 🏆 🥇 🥈 🥉 ⚽ 🏀 🏈 🎮 🎯 🎵 🎶 🎤 🎧 🎸 📷 📱 💻 📺 🔋 💡 📌 📍 📣 📈 📉 💰 💵 💎 👑 💄 👗 👟 🎓 🔑 🔒 🚀 ✈️ 🚗 🏠 ⏰ 📅 ✏️ 📚 🔍"};
+/* iOS-style emoji: pictures of the emoji (not the phone's own font), loaded once from the internet and kept inside the project */
+const EMO_URL = cp => `https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.1.2/img/apple/64/${cp}.png`;
+const emojiCands = ch => { const cps = [...ch].map(c => c.codePointAt(0).toString(16)), a = cps.join('-'), b = cps.filter(x => x !== 'fe0f').join('-'); return [...new Set([a, b, b + '-fe0f'])]; };
+const emojiObj = e => Object.assign(newText(e), { font: 'Sans', size: Math.round(P.w * 0.2), bold: false });
+const EMO_CACHE = new Map();
+const blobURL = b => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(b); });
+async function addEmoji(ch) {
+  let id = EMO_CACHE.get(ch); if (id && !ASSETS.has(id)) id = null;
+  if (!id) {
+    for (const cp of emojiCands(ch)) {
+      try {
+        const r = await fetch(EMO_URL(cp), { mode: 'cors' }); if (!r.ok) continue;
+        const aid = 'e' + uid(), a = registerAsset(aid, await blobURL(await r.blob()));
+        if (await a.ready && a.ok) { id = aid; EMO_CACHE.set(ch, id); break; }
+      } catch { /* try the next spelling */ }
+    }
+  }
+  if (!id) { toast('Could not load the iOS emoji (are you offline?). Added the phone emoji instead.'); addObject(emojiObj(ch), 'Size'); return; }
+  const o = newImage(id, ASSETS.get(id)), sz = Math.round(P.w * 0.2); o.w = sz; o.h = sz; o.emoji = ch;
+  addObject(o);
+}
+function emojiCell(ch) {
+  const im = new Image(), c = emojiCands(ch); let k = 0;
+  im.width = 30; im.height = 30; im.loading = 'lazy'; im.draggable = false; im.alt = ch; im.src = EMO_URL(c[0]);
+  const btn = h('button', { type: 'button', class: 'gcell', 'aria-label': ch, onclick: () => addEmoji(ch), style: { fontSize: '26px', lineHeight: '1' } }, im);
+  im.onerror = () => { if (++k < c.length) im.src = EMO_URL(c[k]); else { im.remove(); btn.textContent = ch; } };
+  return btn;
+}
 function stickersPanel() {
   const cells = STICKERS.map(s => {
     const c = h('canvas', { width: 64, height: 64 }), g = c.getContext('2d');
     g.scale(64 / 24, 64 / 24); g.fillStyle = SET.accent; g.fill(new Path2D(s.d), s.eo ? 'evenodd' : 'nonzero');
     return h('button', { type: 'button', class: 'gcell', 'aria-label': s.n, title: s.n, onclick: () => addObject(newSticker(s.id), 'Color') }, c);
   });
-  return [h('div', { class: 'grid' }, cells)];
+  const out = [h('div', { class: 'grid' }, cells)];
+  for (const [name, list] of Object.entries(EMOJI_GROUPS)) { out.push(h('div', { class: 'lab', style: { margin: '12px 4px 4px' } }, 'Emoji \u00b7 ' + name)); out.push(h('div', { class: 'grid' }, list.split(' ').map(emojiCell))); }
+  return out;
 }
 function applyBgAll(mut) { P.slides.forEach(s => mut(s.bg)); }
 function alphaRow(g, arm) {
@@ -1580,7 +1682,7 @@ function canvasPanel() {
   const w = h('input', { type: 'number', class: 'num wide', min: 200, max: 4096, value: P.w, 'aria-label': 'Width' }), hh = h('input', { type: 'number', class: 'num wide', min: 200, max: 4096, value: P.h, 'aria-label': 'Height' });
   return [h('div', { class: 'presets' }, SIZES.map(s => h('button', { type: 'button', class: 'preset' + (s.w === P.w && s.h === P.h ? ' on' : ''), onclick: () => resizeCanvas(s.w, s.h) }, h('b', null, `${s.n} ${s.r}`), h('span', null, `${s.w} × ${s.h}`)))),
     h('div', { class: 'row' }, h('div', { class: 'fld' }, h('label', null, 'Width'), w), h('div', { class: 'fld' }, h('label', null, 'Height'), hh), act('check', 'Apply', () => { const a = Math.round(+w.value), b = Math.round(+hh.value); if (!(a >= 200 && a <= 4096 && b >= 200 && b <= 4096)) return toast('Width and height must be between 200 and 4096 px'); resizeCanvas(a, b); })),
-    h('p', { class: 'empty' }, 'Size applies to every slide so exports match.')];
+    decoUI(), h('p', { class: 'empty' }, 'Size applies to every slide so exports match.')];
 }
 function resizeCanvas(nw, nh) {
   if (nw === P.w && nh === P.h) return;
@@ -1615,8 +1717,12 @@ function imageFillBody(o) {
     im ? slider('Move left / right', -1, 1, 0.01, () => im.px || 0, v => { im.px = v; }, v => Math.round(v * 100)) : null,
     im ? slider('Move up / down', -1, 1, 0.01, () => im.py || 0, v => { im.py = v; }, v => Math.round(v * 100)) : null].filter(Boolean);
 }
+function setList(o, kind) {
+  const strip = l => l.replace(/^(•\s|\d+\.\s)/, ''), n = o.text.split('\n').map((l, i) => (kind === 'bul' ? '• ' : kind === 'num' ? (i + 1) + '. ' : '') + strip(l)).join('\n');
+  adjustRuns(o, o.text, n); o.text = n; LAYOUT.clear(); commit(); render(); refreshThumbs(); buildPanel();
+}
 let STYLE_CLIP = null;
-const STYLE_KEYS = { text: ['color', 'font', 'bold', 'italic', 'align', 'ls', 'lh', 'stroke', 'shadow', 'grad', 'curve', 'opacity'], shape: ['fill', 'stroke', 'shadow', 'radius', 'opacity'], sticker: ['color', 'grad', 'shadow', 'opacity'], image: ['shadow', 'radius', 'bright', 'contrast', 'sat', 'opacity'] };
+const STYLE_KEYS = { text: ['color', 'font', 'bold', 'italic', 'align', 'ls', 'lh', 'stroke', 'shadow', 'grad', 'curve', 'neon', 'glitch', 'opacity'], shape: ['fill', 'stroke', 'shadow', 'radius', 'opacity'], sticker: ['color', 'grad', 'shadow', 'opacity'], image: ['shadow', 'radius', 'bright', 'contrast', 'sat', 'opacity'] };
 function copyStyle(o) { const st = {}; (STYLE_KEYS[o.type] || []).forEach(k => { if (k in o) st[k] = deep(o[k]); }); if (st.fill && st.fill.mode === 'image') st.fill.mode = 'solid'; STYLE_CLIP = { type: o.type, st }; toast('Style copied. Select another ' + o.type + ' and tap Paste style.'); }
 function pasteStyle(o) { if (!STYLE_CLIP || STYLE_CLIP.type !== o.type) { toast('Copy a style from the same kind of layer first.'); return; } Object.entries(STYLE_CLIP.st).forEach(([k, v]) => { o[k] = deep(v); }); LAYOUT.clear(); commit(); render(); refreshThumbs(); buildPanel(); toast('Style pasted'); }
 function setAsBg(o) { const sl = slide(); sl.bg.img = o.src; sl.bg.type = 'image'; sl.bg.fit = 'cover'; sl.bg.dim = sl.bg.dim || 0; sl.objects = sl.objects.filter(x => x.id !== o.id); S.selId = null; commit(); render(); refreshThumbs(); buildPanel(); toast('Now the slide background'); }
@@ -1709,7 +1815,16 @@ const BODIES = {
   text: {
     Text: o => { const ta = h('textarea', { class: 'txt', 'aria-label': 'Text', value: o.text }); ta.addEventListener('input', () => { adjustRuns(o, o.text, ta.value); o.text = ta.value; render(); commitSoon(); }); ta.addEventListener('change', () => { commit(); refreshThumbs(); });
       const setCase = k => { const t = o.text, n = k === 'up' ? t.toUpperCase() : k === 'low' ? t.toLowerCase() : t.toLowerCase().replace(/(^\s*|[.!?]\s+)([a-z])/g, (m, a, b) => a + b.toUpperCase()); if (n.length !== t.length) return; ta.value = n; o.text = n; LAYOUT.clear(); commit(); render(); refreshThumbs(); };
-      return [ta, h('div', { class: 'row' }, act('check', 'Sentence case', () => setCase('sen')), act('check', 'lowercase', () => setCase('low')), act('check', 'UPPERCASE', () => setCase('up')))]; },
+      return [ta, h('div', { class: 'row' }, act('check', 'Sentence case', () => setCase('sen')), act('check', 'lowercase', () => setCase('low')), act('check', 'UPPERCASE', () => setCase('up'))), h('div', { class: 'row' }, act('check', '• Bullets', () => setList(o, 'bul')), act('check', '1. Numbers', () => setList(o, 'num')), act('check', 'No list', () => setList(o, '')))]; },
+    Glow: o => {
+      const nn = o.neon = o.neon || { on: false, c: '#00f0ff', k: 1 }, gg = o.glitch = o.glitch || { on: false, k: 1 };
+      const upd = () => { LAYOUT.clear(); commit(); render(); refreshThumbs(); buildPanel(); };
+      return [toggle('Neon glow', nn.on, v => { nn.on = v; upd(); }),
+        nn.on ? colorField('Neon colour', () => nn.c, v => { nn.c = v; }) : null,
+        nn.on ? slider('Glow strength', 0.3, 3, 0.1, () => nn.k, v => { nn.k = v; }, v => v.toFixed(1)) : null,
+        toggle('Glitch (red and blue split)', gg.on, v => { gg.on = v; upd(); }),
+        gg.on ? slider('Glitch strength', 0.3, 3, 0.1, () => gg.k, v => { gg.k = v; }, v => v.toFixed(1)) : null].filter(Boolean);
+    },
     Font: o => {
       const rec = getRecent(), cats = [...(rec.length ? ['Recent'] : []), ...Object.keys(FONT_CATS), ...(P.fonts.length ? ['Yours'] : [])];
       const cur = S.fontCat && cats.includes(S.fontCat) ? S.fontCat : catOf(o.font);
@@ -2218,13 +2333,13 @@ const idb = {
 function serializeProject() {
   const used = new Set(); P.slides.forEach(s => { s.objects.forEach(o => o.src && used.add(o.src)); s.bg.img && used.add(s.bg.img); });
   const assets = {}; used.forEach(id => { const a = ASSETS.get(id); if (a) assets[id] = a.url; });
-  return { v: 1, id: P.id, name: P.name, w: P.w, h: P.h, fonts: P.fonts, slides: P.slides, assets, updated: Date.now() };
+  return { v: 1, id: P.id, name: P.name, w: P.w, h: P.h, fonts: P.fonts, deco: P.deco || null, slides: P.slides, assets, updated: Date.now() };
 }
 async function loadProject(d) {
   if (!d || !Array.isArray(d.slides) || !d.slides.length || !d.w || !d.h) throw new Error('This file is not a Zon Studio project.');
   flushCommit();
   const ps = []; for (const id in (d.assets || {})) if (!ASSETS.has(id)) ps.push(registerAsset(id, d.assets[id]).ready);
-  P.id = d.id || uid(); P.name = String(d.name || 'Untitled carousel').slice(0, 60); P.w = d.w; P.h = d.h; P.fonts = d.fonts || []; P.slides = d.slides; S.active = 0; S.selId = null; S.panel = null;
+  P.id = d.id || uid(); P.name = String(d.name || 'Untitled carousel').slice(0, 60); P.w = d.w; P.h = d.h; P.fonts = d.fonts || []; P.deco = d.deco || null; P.slides = d.slides; S.active = 0; S.selId = null; S.panel = null;
   await loadCustomFonts(); await Promise.all(ps);
   Hs.stack = []; Hs.i = -1; commit(); S.saved = true;
   fitCanvas(); renderStrip(); buildPanel(); syncHeader(); syncTools();
@@ -2292,7 +2407,7 @@ function legalBody(kind) {
     CONTACT_EMAIL ? P_('Contact: ' + CONTACT_EMAIL) : null];
   return [
     P_('Privacy: Zon Studio works on your device. Your projects, images and fonts are stored locally and are not uploaded to us. There are no accounts.'),
-    P_('If you use an online feature (such as searching for stickers), the search text you type is sent to that service to return results.'),
+    P_('If you use an online feature (such as searching for stickers or loading emoji pictures), the search text you type is sent to that service to return results.'),
     P_('Your content: you own what you create. Only import images, fonts and logos you have the right to use. You are responsible for what you publish.'),
     P_('Terms: the app is provided as is, without warranty. Keep your own backups of important work. We may update these terms as the app grows.'),
     CONTACT_EMAIL ? P_('Questions: ' + CONTACT_EMAIL) : null];

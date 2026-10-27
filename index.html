@@ -206,6 +206,7 @@ input.text,select.text{width:100%;height:38px;background:var(--panel-2);border:1
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.lg.anim *,.word,.tag{animation:none!important}.lg.anim .z{stroke-dashoffset:0}.lg.anim .cards rect{opacity:var(--o,1)}.word,.tag,.lg.anim .shine{opacity:1}}
 img.lg{display:block;object-fit:contain}img.lg.anim{animation:lgIn .8s cubic-bezier(.2,.8,.2,1) both}@keyframes lgIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
 .legal{text-align:center;margin:18px 0 4px;font:11px/1.5 Georgia,'Times New Roman',serif;color:var(--muted,#8a8f9c)}.legal button{background:none;border:0;padding:6px 4px;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
+.ctxbg{position:fixed;inset:0;z-index:59}.ctx{position:fixed;z-index:60;width:min(92vw,330px);max-height:64vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 10px 10px;box-shadow:0 14px 44px #000a}.ctxh{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 0}.ctx .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ctx .gl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:8px 4px 4px}.cbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:48px;padding:8px 4px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:inherit;font-size:11px;text-align:center}.cbtn.danger{color:#ff6b6b}.cbtn.tab{font-size:12px}
 </style>
 
 <div id="app">
@@ -241,7 +242,7 @@ img.lg{display:block;object-fit:contain}img.lg.anim{animation:lgIn .8s cubic-bez
 <input type="file" id="fTex" accept="image/*" hidden>
 <input type="file" id="fFill" accept="image/*" hidden>
 <input type="file" id="fFont" accept=".ttf,.otf,.woff,.woff2,font/*" hidden>
-<input type="file" id="fProj" accept=".json,application/json" hidden>
+<input type="file" id="fProj" accept=".json,.zip,application/json,application/zip,application/x-zip-compressed" hidden>
 
 <script>
 (() => {
@@ -856,23 +857,27 @@ function drawFx(ctx, fx, W, H) {
   if (fx.grain > 0) { const p = ctx.createPattern(GRAIN, 'repeat'); p.setTransform(new DOMMatrix().scale(3)); ctx.save(); ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = clamp(fx.grain, 0, 1); ctx.fillStyle = p; ctx.fillRect(0, 0, W, H); ctx.restore(); }
   if (fx.str > 0) { const p = ctx.createPattern(STRIPE, 'repeat'); p.setTransform(new DOMMatrix().scale(2)); ctx.save(); ctx.globalAlpha = clamp(fx.str, 0, 1) * 0.5; ctx.fillStyle = p; ctx.fillRect(0, 0, W, H); ctx.restore(); }
 }
+function visualObjs(sl) { return sl.objects.some(o => o.aboveFx) ? [...sl.objects.filter(o => !o.aboveFx), ...sl.objects.filter(o => o.aboveFx)] : sl.objects; }
 function renderSlide(ctx, sl, W, H, opt = {}) {
   CUR_K = opt.k || 1;
   if (opt.transparent) ctx.clearRect(0, 0, W, H); else drawBg(ctx, sl.bg, W, H);
-  for (const o of sl.objects) { if (o.hidden) continue; if (o.type === 'text') ensureFont(o); drawObj(ctx, o); }
-  if (!opt.transparent) drawFx(ctx, sl.fx, W, H);
+  const drawAll = list => { for (const o of list) { if (o.hidden) continue; if (o.type === 'text') ensureFont(o); drawObj(ctx, o); } };
+  drawAll(sl.objects.filter(o => !o.aboveFx));
+  if (!opt.transparent) drawFx(ctx, sl.fx, W, H); // effects sit between the two groups, so any layer can go above them
+  drawAll(sl.objects.filter(o => o.aboveFx));
 }
 
 /* ============ editor canvas ============ */
 const cv = $('#cv'), cx = cv.getContext('2d'), wrap = $('#canvasWrap'), stage = $('#stage');
-const V = { scale: 1, dpr: 1, guides: { x: false, y: false } };
+const V = { scale: 1, dpr: 1, zoom: 1, panX: 0, panY: 0, guides: { x: false, y: false, lx: [], ly: [] } };
+function applyView() { wrap.style.transform = (V.zoom > 1.001 || V.panX || V.panY) ? `translate(${V.panX}px,${V.panY}px) scale(${V.zoom})` : ''; }
 let rafR = 0;
 function requestRender() { if (!rafR) rafR = requestAnimationFrame(() => { rafR = 0; render(); }); }
 function fitCanvas() {
   const r = stage.getBoundingClientRect();
   const aw = Math.max(40, r.width - 24), ah = Math.max(40, r.height - 24);
   const s = Math.min(aw / P.w, ah / P.h);
-  V.scale = s; V.dpr = Math.min(window.devicePixelRatio || 1, 3);
+  V.scale = s; V.dpr = Math.min((window.devicePixelRatio || 1) * (V.zoom > 1.3 ? Math.min(V.zoom, 2.5) : 1), 4);
   const cw = P.w * s, ch = P.h * s;
   wrap.style.width = cw + 'px'; wrap.style.height = ch + 'px';
   cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
@@ -889,7 +894,7 @@ function render() {
   scheduleThumb(); if (SET.theme === 'ambient') applyAmbient();
 }
 function handlesOf(o) {
-  const w = o.w / 2, hh = o.h / 2, s = 1 / V.scale, list = [];
+  const w = o.w / 2, hh = o.h / 2, s = 1 / (V.scale * V.zoom), list = [];
   list.push({ k: 'rot', x: 0, y: -hh - 34 * s });
   [[-1, -1], [1, -1], [1, 1], [-1, 1]].forEach(([a, b]) => list.push({ k: 'corner', x: a * w, y: b * hh, sx: a, sy: b }));
   list.push({ k: 'edge', axis: 'x', x: -w, y: 0 }, { k: 'edge', axis: 'x', x: w, y: 0 });
@@ -897,10 +902,13 @@ function handlesOf(o) {
   return list;
 }
 function drawOverlay(ctx) {
-  const s = 1 / V.scale;
-  if (V.guides.x || V.guides.y) {
+  const s = 1 / (V.scale * V.zoom);
+  if (V.guides.x || V.guides.y || (V.guides.lx && V.guides.lx.length) || (V.guides.ly && V.guides.ly.length)) {
     ctx.save(); ctx.strokeStyle = '#ff4fa3'; ctx.lineWidth = 1.5 * s; ctx.setLineDash([8 * s, 6 * s]);
-    ctx.beginPath(); if (V.guides.x) { ctx.moveTo(P.w / 2, 0); ctx.lineTo(P.w / 2, P.h); } if (V.guides.y) { ctx.moveTo(0, P.h / 2); ctx.lineTo(P.w, P.h / 2); } ctx.stroke(); ctx.restore();
+    ctx.beginPath(); if (V.guides.x) { ctx.moveTo(P.w / 2, 0); ctx.lineTo(P.w / 2, P.h); } if (V.guides.y) { ctx.moveTo(0, P.h / 2); ctx.lineTo(P.w, P.h / 2); }
+    for (const g of V.guides.lx || []) { ctx.moveTo(g.p, g.a); ctx.lineTo(g.p, g.b); }
+    for (const g of V.guides.ly || []) { ctx.moveTo(g.a, g.p); ctx.lineTo(g.b, g.p); }
+    ctx.stroke(); ctx.restore();
   }
   const o = selObj(); if (!o || o.hidden) return;
   ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(rad(o.rot));
@@ -961,9 +969,21 @@ function delObject() {
   commit(); render(); buildPanel(); refreshThumbs(); syncTools();
 }
 function moveZ(o, dir) {
-  const a = slide().objects, i = a.indexOf(o); let j = i;
-  if (dir === 'front') j = a.length - 1; else if (dir === 'back') j = 0; else if (dir === 'up') j = Math.min(a.length - 1, i + 1); else j = Math.max(0, i - 1);
-  if (j === i) return; a.splice(i, 1); a.splice(j, 0, o); commit(); render(); buildPanel(); refreshThumbs();
+  const a = slide().objects; let i = a.indexOf(o); if (i < 0) return;
+  const same = x => !!x.aboveFx === !!o.aboveFx;
+  const put = j => { a.splice(a.indexOf(o), 1); a.splice(j, 0, o); };
+  if (dir === 'front') { o.aboveFx = true; put(a.length - 1); }
+  else if (dir === 'back') { o.aboveFx = false; put(0); }
+  else if (dir === 'up') {
+    let j = -1; for (let k = i + 1; k < a.length; k++) if (same(a[k])) { j = k; break; }
+    if (j >= 0) put(j);
+    else if (!o.aboveFx) { a.splice(i, 1); o.aboveFx = true; const k = a.findIndex(x => x.aboveFx); a.splice(k < 0 ? a.length : k, 0, o); }
+  } else {
+    let j = -1; for (let k = i - 1; k >= 0; k--) if (same(a[k])) { j = k; break; }
+    if (j >= 0) put(j);
+    else if (o.aboveFx) { a.splice(i, 1); o.aboveFx = false; let k = -1; for (let t = a.length - 1; t >= 0; t--) if (!a[t].aboveFx) { k = t; break; } a.splice(k + 1, 0, o); }
+  }
+  commit(); render(); buildPanel(); refreshThumbs();
 }
 function selectObj(id) {
   S.selId = id; if (id) { S.panel = 'object'; } else if (S.panel === 'object') S.panel = null;
@@ -971,15 +991,42 @@ function selectObj(id) {
 }
 
 /* ============ pointer interaction ============ */
-const toProj = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / V.scale, y: (e.clientY - r.top) / V.scale, inside: e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom }; };
+const toProj = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / (V.scale * V.zoom), y: (e.clientY - r.top) / (V.scale * V.zoom), inside: e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom }; };
 const toLocal = (o, p) => { const a = -rad(o.rot), dx = p.x - o.x, dy = p.y - o.y; return { x: dx * Math.cos(a) - dy * Math.sin(a), y: dx * Math.sin(a) + dy * Math.cos(a) }; };
 const inBox = (o, p, pad = 0) => { const l = toLocal(o, p); return Math.abs(l.x) <= o.w / 2 + pad && Math.abs(l.y) <= o.h / 2 + pad; };
-function topHit(p) { const a = slide().objects; for (let i = a.length - 1; i >= 0; i--) { const o = a[i]; if (!o.hidden && !(o.locked && o.type !== 'text') && inBox(o, p, 4 / V.scale)) return o; } return null; }
+function topHit(p) { if (!slide() || slide().locked) return null; const a = visualObjs(slide()); for (let i = a.length - 1; i >= 0; i--) { const o = a[i]; if (!o.hidden && !(o.locked && o.type !== 'text') && inBox(o, p, 4 / (V.scale * V.zoom))) return o; } return null; }
 function hitHandle(o, p) {
-  const l = toLocal(o, p), r = 24 / V.scale; let best = null, bd = 1e9;
+  const l = toLocal(o, p), r = 24 / (V.scale * V.zoom); let best = null, bd = 1e9;
   for (const hd of handlesOf(o)) { const d = Math.hypot(l.x - hd.x, l.y - hd.y); if (d < r && d < bd) { best = hd; bd = d; } }
   return best;
 }
+const bbox = o => { const a = rad(o.rot), c = Math.abs(Math.cos(a)), sn = Math.abs(Math.sin(a)), w = o.w * c + o.h * sn, h = o.w * sn + o.h * c; return { l: o.x - w / 2, r: o.x + w / 2, t: o.y - h / 2, b: o.y + h / 2, cx: o.x, cy: o.y }; };
+function snapMove(o) {
+  const th = 7 / (V.scale * V.zoom), me = bbox(o), G = V.guides; G.x = G.y = false; G.lx = []; G.ly = [];
+  const xs = [{ v: 0 }, { v: P.w / 2, c: 1 }, { v: P.w }], ys = [{ v: 0 }, { v: P.h / 2, c: 1 }, { v: P.h }];
+  for (const q of slide().objects) { if (q === o || q.hidden) continue; const b = bbox(q); xs.push({ v: b.l, b }, { v: b.cx, b }, { v: b.r, b }); ys.push({ v: b.t, b }, { v: b.cy, b }, { v: b.b, b }); }
+  const best = (mine, ts) => { let r = null; for (const m of mine) for (const t of ts) { const d = t.v - m; if (Math.abs(d) < th && (!r || Math.abs(d) < Math.abs(r.d))) r = { d, t }; } return r; };
+  const bx = best([me.l, me.cx, me.r], xs), by = best([me.t, me.cy, me.b], ys);
+  if (bx) o.x += bx.d; if (by) o.y += by.d;
+  const m2 = bbox(o);
+  if (bx) { if (bx.t.c) G.x = true; else G.lx.push({ p: bx.t.v, a: bx.t.b ? Math.min(m2.t, bx.t.b.t) : 0, b: bx.t.b ? Math.max(m2.b, bx.t.b.b) : P.h }); }
+  if (by) { if (by.t.c) G.y = true; else G.ly.push({ p: by.t.v, a: by.t.b ? Math.min(m2.l, by.t.b.l) : 0, b: by.t.b ? Math.max(m2.r, by.t.b.r) : P.w }); }
+}
+const ptrs = new Map(); let pin = null;
+const pgeo = () => { const a = [...ptrs.values()]; return { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1, mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2 }; };
+function startPinch() {
+  if (drag) { const d = drag; if (d.mode === 'move' && d.moved && d.obj) { d.obj.x = d.start.x; d.obj.y = d.start.y; } else if (d.moved && ['corner', 'edge', 'rot'].includes(d.mode)) commit(); drag = null; V.guides.x = V.guides.y = false; V.guides.lx = []; V.guides.ly = []; requestRender(); }
+  const g = pgeo(); pin = { d0: g.d, mx0: g.mx, my0: g.my, z0: V.zoom, px0: V.panX, py0: V.panY };
+}
+function updatePinch() {
+  if (!pin || ptrs.size < 2) return;
+  const g = pgeo(), r = stage.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, z = clamp(pin.z0 * g.d / pin.d0, 1, 6);
+  const ux = (pin.mx0 - cx - pin.px0) / pin.z0, uy = (pin.my0 - cy - pin.py0) / pin.z0;
+  V.zoom = z; V.panX = g.mx - cx - z * ux; V.panY = g.my - cy - z * uy;
+  const mx = Math.abs((wrap.offsetWidth * z - r.width) / 2) + 60, my = Math.abs((wrap.offsetHeight * z - r.height) / 2) + 60;
+  V.panX = clamp(V.panX, -mx, mx); V.panY = clamp(V.panY, -my, my); applyView();
+}
+function endPinch() { pin = null; if (V.zoom < 1.03) { V.zoom = 1; V.panX = V.panY = 0; } applyView(); fitCanvas(); }
 let drag = null, lastTap = 0, lastTapId = null;
 S.brush = 60;
 function eraseAt(o, p, first) {
@@ -992,6 +1039,9 @@ function eraseAt(o, p, first) {
   requestRender();
 }
 stage.addEventListener('pointerdown', e => {
+  ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (ptrs.size === 2) { startPinch(); return; }
+  if (ptrs.size > 2 || pin) return;
   if (drag || e.button > 0) return;
   const p = toProj(e); const o = selObj();
   drag = { id: e.pointerId, p0: p, cx0: e.clientX, cy0: e.clientY, moved: false, mode: null };
@@ -1013,6 +1063,8 @@ stage.addEventListener('pointerdown', e => {
   drag.mode = 'swipe';
 });
 stage.addEventListener('pointermove', e => {
+  if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pin) { updatePinch(); return; }
   if (!drag || e.pointerId !== drag.id) return;
   const p = toProj(e), dxs = e.clientX - drag.cx0, dys = e.clientY - drag.cy0;
   if (!drag.moved && Math.hypot(dxs, dys) > 4) drag.moved = true;
@@ -1020,11 +1072,8 @@ stage.addEventListener('pointermove', e => {
   if (drag.mode === 'erase') { eraseAt(o, p, false); requestRender(); return; }
   if (drag.mode === 'move' && drag.moved) {
     o.x = drag.start.x + (p.x - drag.p0.x); o.y = drag.start.y + (p.y - drag.p0.y);
-    const th = 7 / V.scale; V.guides.x = V.guides.y = false;
-    if (SET.snap) {
-      if (Math.abs(o.x - P.w / 2) < th) { o.x = P.w / 2; V.guides.x = true; }
-      if (Math.abs(o.y - P.h / 2) < th) { o.y = P.h / 2; V.guides.y = true; }
-    }
+    V.guides.x = V.guides.y = false; V.guides.lx = []; V.guides.ly = [];
+    if (SET.snap) snapMove(o);
     liveRefresh(); requestRender();
   } else if (drag.mode === 'corner') {
     const f = clamp(Math.hypot(p.x - o.x, p.y - o.y) / drag.start.d0, 0.04, 30);
@@ -1040,18 +1089,18 @@ stage.addEventListener('pointermove', e => {
     const sn = Math.round(a / 45) * 45; if (Math.abs(a - sn) < 4) a = sn;
     o.rot = Math.round(a * 10) / 10; liveRefresh(); requestRender();
   } else if (drag.mode === 'swipe' && drag.moved) {
-    if (Math.abs(dxs) > Math.abs(dys) * 1.2 && P.slides.length > 1) wrap.style.transform = `translateX(${clamp(dxs * 0.55, -90, 90)}px)`;
+    if (V.zoom < 1.05 && Math.abs(dxs) > Math.abs(dys) * 1.2 && P.slides.length > 1) wrap.style.transform = `translateX(${clamp(dxs * 0.55, -90, 90)}px)`;
   }
 });
 function endDrag(e, cancelled) {
   if (!drag || e.pointerId !== drag.id) return;
-  const d = drag; drag = null; V.guides.x = V.guides.y = false;
+  const d = drag; drag = null; V.guides.x = V.guides.y = false; V.guides.lx = []; V.guides.ly = [];
   try { stage.releasePointerCapture(e.pointerId); } catch { /* ignore */ }
   if (d.mode === 'erase') { commit(); refreshThumbs(); requestRender(); return; }
   const dxs = e.clientX - d.cx0, dys = e.clientY - d.cy0;
   if (d.mode === 'swipe') {
-    wrap.style.transform = '';
-    const horizontal = Math.abs(dxs) > 56 && Math.abs(dxs) > Math.abs(dys) * 1.4;
+    applyView();
+    const horizontal = V.zoom < 1.05 && Math.abs(dxs) > 56 && Math.abs(dxs) > Math.abs(dys) * 1.4;
     if (!cancelled && horizontal && P.slides.length > 1) { const t = S.active + (dxs < 0 ? 1 : -1); if (t >= 0 && t < P.slides.length) goTo(t, dxs < 0 ? 1 : -1); else wrap.animate([{ transform: `translateX(${dxs * 0.2}px)` }, { transform: 'none' }], { duration: 160 }); }
     else if (!d.moved && !cancelled) { S.selId = null; if (S.panel === 'object') S.panel = null; buildPanel(); requestRender(); syncTools(); }
     else requestRender();
@@ -1068,8 +1117,9 @@ function endDrag(e, cancelled) {
   } else if (!d.moved && d.mode === 'move') { lastTap = Date.now(); lastTapId = d.obj.id; }
   requestRender();
 }
-stage.addEventListener('pointerup', e => endDrag(e, false));
-stage.addEventListener('pointercancel', e => endDrag(e, true));
+const upPtr = (e, c) => { ptrs.delete(e.pointerId); if (pin) { if (ptrs.size < 2) endPinch(); return; } endDrag(e, c); };
+stage.addEventListener('pointerup', e => upPtr(e, false));
+stage.addEventListener('pointercancel', e => upPtr(e, true));
 stage.addEventListener('dblclick', e => {
   const o = selObj(); if (o && o.type === 'text') { S.tab = 'Text'; buildPanel(); const ta = $('#panel textarea'); if (ta) { ta.focus(); ta.select(); } }
 });
@@ -1288,6 +1338,44 @@ function colorField(label, get, set) {
 }
 const act = (icon, label, fn, cls = '') => h('button', { type: 'button', class: 'chip ' + cls, onclick: fn, html: ic(icon, 16) + `<span>${label}</span>` });
 
+/* ============ long-press options card ============ */
+let OBJ_CLIP = null, LP = null;
+function copyObj(o) { OBJ_CLIP = deep(o); toast('Copied'); }
+function pasteObj() {
+  if (!OBJ_CLIP) { toast('Nothing copied yet'); return; }
+  const sl = slide(), c = deep(OBJ_CLIP); c.id = uid();
+  while (sl.objects.some(x => Math.abs(x.x - c.x) < 1 && Math.abs(x.y - c.y) < 1)) { c.x += 30; c.y += 30; }
+  sl.objects.push(c); S.selId = c.id; S.panel = 'object'; commit(); render(); buildPanel(); refreshThumbs(); syncTools(); toast('Pasted');
+}
+function ctxClose() { const a = $('#ctxCard'), b = $('#ctxBg'); if (a) a.remove(); if (b) b.remove(); }
+function openTab(o, name) { S.panel = 'object'; S.tab = name; buildPanel(); requestRender(); syncTools(); if (name === 'Text') { const ta = $('#panel textarea'); if (ta) { ta.focus(); ta.select(); } } }
+function openCtx(o, cx, cy) {
+  ctxClose(); if (S.selId !== o.id) selectObj(o.id);
+  const B = (icon, label, fn, cls = '') => h('button', { type: 'button', class: 'cbtn ' + cls, onclick: () => { ctxClose(); fn(); }, html: (icon ? ic(icon, 18) : '') + `<span>${label}</span>` });
+  const G = (title, items) => [h('div', { class: 'gl' }, title), h('div', { class: 'g' }, ...items)];
+  const edit = (TABS[o.type] || []).map(t => B(null, t === 'Arrange' ? 'Size and position' : t, () => openTab(o, t), 'tab'));
+  if (o.type === 'text') edit.unshift(B('check', 'Edit text', () => openTab(o, 'Text')));
+  const styleItems = [B('copy', 'Copy style', () => copyStyle(o)), B('paste', 'Paste style', () => pasteStyle(o))];
+  if (o.type === 'image') styleItems.push(B('canvas', 'Set as background', () => setAsBg(o)));
+  const card = h('div', { id: 'ctxCard', class: 'ctx', role: 'dialog', 'aria-label': 'Layer options' },
+    h('div', { class: 'ctxh' }, h('b', null, { text: 'Text', image: 'Picture', shape: 'Shape', sticker: 'Sticker' }[o.type] || 'Layer'), h('button', { type: 'button', class: 'ib', 'aria-label': 'Close', onclick: ctxClose, html: ic('close', 18) })),
+    ...G('Quick', [B('copy', 'Copy', () => copyObj(o)), B('paste', 'Paste', pasteObj), B('copy', 'Duplicate', dupObject), B('right', 'To next slide', copyToNext)]),
+    ...G('Edit', edit), ...G('Style', styleItems),
+    ...G('Order', [B('front', 'To front', () => moveZ(o, 'front')), B('up', 'Forward', () => moveZ(o, 'up')), B('down', 'Backward', () => moveZ(o, 'down')), B('back', 'To back', () => moveZ(o, 'back'))]),
+    ...G('More', [B(o.locked ? 'lock' : 'unlock', o.locked ? 'Unlock' : 'Lock', () => { o.locked = !o.locked; commit(); render(); buildPanel(); }), B('trash', 'Delete', delObject, 'danger')]));
+  document.body.append(h('div', { id: 'ctxBg', class: 'ctxbg', onpointerdown: ctxClose }), card);
+  const r = card.getBoundingClientRect(); let top = cy - r.height - 20; if (top < 56) top = Math.min(cy + 24, innerHeight - r.height - 8);
+  card.style.left = Math.max(8, Math.min(cx - r.width / 2, innerWidth - r.width - 8)) + 'px'; card.style.top = Math.max(8, top) + 'px';
+}
+const lpStop = () => { if (LP) { clearTimeout(LP.t); LP = null; } };
+stage.addEventListener('pointerdown', e => {
+  lpStop(); if (ptrs.size > 1 || pin || e.button > 0) return;
+  const p = toProj(e), t = p.inside ? topHit(p) : null; if (!t) return;
+  const x = e.clientX, y = e.clientY;
+  LP = { x, y, t: setTimeout(() => { LP = null; if (ptrs.size > 1 || pin) return; try { stage.releasePointerCapture(e.pointerId); } catch { /* ignore */ } drag = null; openCtx(t, x, y); }, 520) };
+});
+window.addEventListener('pointermove', e => { if (LP && Math.hypot(e.clientX - LP.x, e.clientY - LP.y) > 10) lpStop(); });
+['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, lpStop));
 /* ============ panels ============ */
 const TABS = {
   text: ['Text', 'Style', 'Font', 'Size', 'Color', 'Stroke', 'Shadow', 'Gradient', 'Texture', 'Curve', '3D', 'Spacing', 'Tilt', 'Arrange'],
@@ -1367,7 +1455,7 @@ function backdropPanel() {
         act('rotate', 'Reset effects', () => { sl.fx = { vig: 0, grain: 0, str: 0 }; commit(); render(); refreshThumbs(); buildPanel(); })),
       h('p', { class: 'tinyp' }, 'These finish the whole slide and appear in your exported images.'));
   } else {
-    out.push(h('div', { class: 'row' }, act('upload', 'Choose background image', () => $('#fBg').click()), bg.img ? act('trash', 'Remove', () => { bg.img = null; bg.type = 'solid'; commit(); render(); refreshThumbs(); buildPanel(); }, 'danger') : null),
+    out.push(h('div', { class: 'row' }, act('upload', 'Choose background image', () => $('#fBg').click()), bg.img ? act('canvas', 'Make it a layer', detachBg) : null, bg.img ? act('trash', 'Remove', () => { bg.img = null; bg.type = 'solid'; commit(); render(); refreshThumbs(); buildPanel(); }, 'danger') : null),
       bg.img ? h('div', { class: 'row' }, seg([['cover', 'Fill'], ['contain', 'Fit']], bg.fit, v => { bg.fit = v; commit(); render(); refreshThumbs(); buildPanel(); }), allBtn()) : h('p', { class: 'empty' }, 'No background image on this slide yet.'),
       bg.img ? slider('Darken', 0, 0.85, 0.05, () => bg.dim, v => { bg.dim = v; }, v => Math.round(v * 100) + '%') : null);
   }
@@ -1387,7 +1475,7 @@ function resizeCanvas(nw, nh) {
 }
 function layerLabel(o) { return o.type === 'text' ? (o.text.replace(/\s+/g, ' ').trim().slice(0, 28) || 'Text') : o.type === 'image' ? 'Image' : o.type === 'shape' ? SHAPE_NAME[o.kind] : (STICKERS.find(s => s.id === o.sid) || {}).n || 'Sticker'; }
 function layersPanel() {
-  const objs = slide().objects;
+  const objs = visualObjs(slide());
   if (!objs.length) return [h('p', { class: 'empty' }, 'This slide has no objects yet. Add text, an image, a shape or a sticker.')];
   return [h('div', { class: 'layers' }, [...objs].reverse().map(o => h('div', { class: 'layer' + (o.id === S.selId ? ' on' : '') + (o.hidden ? ' off' : '') },
     h('button', { type: 'button', class: 'nm', onclick: () => { S.selId = o.id; S.panel = 'layers'; buildPanel(); requestRender(); } }, h('span', { html: ic(o.type === 'text' ? 'text' : o.type === 'image' ? 'image' : o.type === 'shape' ? 'shape' : 'sticker', 16) }), h('span', null, layerLabel(o))),
@@ -1412,6 +1500,12 @@ function imageFillBody(o) {
     im ? slider('Move left / right', -1, 1, 0.01, () => im.px || 0, v => { im.px = v; }, v => Math.round(v * 100)) : null,
     im ? slider('Move up / down', -1, 1, 0.01, () => im.py || 0, v => { im.py = v; }, v => Math.round(v * 100)) : null].filter(Boolean);
 }
+let STYLE_CLIP = null;
+const STYLE_KEYS = { text: ['color', 'font', 'bold', 'italic', 'align', 'ls', 'lh', 'stroke', 'shadow', 'grad', 'curve', 'opacity'], shape: ['fill', 'stroke', 'shadow', 'radius', 'opacity'], sticker: ['color', 'grad', 'shadow', 'opacity'], image: ['shadow', 'radius', 'bright', 'contrast', 'sat', 'opacity'] };
+function copyStyle(o) { const st = {}; (STYLE_KEYS[o.type] || []).forEach(k => { if (k in o) st[k] = deep(o[k]); }); if (st.fill && st.fill.mode === 'image') st.fill.mode = 'solid'; STYLE_CLIP = { type: o.type, st }; toast('Style copied. Select another ' + o.type + ' and tap Paste style.'); }
+function pasteStyle(o) { if (!STYLE_CLIP || STYLE_CLIP.type !== o.type) { toast('Copy a style from the same kind of layer first.'); return; } Object.entries(STYLE_CLIP.st).forEach(([k, v]) => { o[k] = deep(v); }); LAYOUT.clear(); commit(); render(); refreshThumbs(); buildPanel(); toast('Style pasted'); }
+function setAsBg(o) { const sl = slide(); sl.bg.img = o.src; sl.bg.type = 'image'; sl.bg.fit = 'cover'; sl.bg.dim = sl.bg.dim || 0; sl.objects = sl.objects.filter(x => x.id !== o.id); S.selId = null; commit(); render(); refreshThumbs(); buildPanel(); toast('Now the slide background'); }
+function detachBg() { const sl = slide(), bg = sl.bg, a = bg.img && ASSETS.get(bg.img); if (!a) return; const o = newImage(bg.img, a); sl.objects.unshift(o); bg.img = null; bg.type = 'solid'; S.selId = o.id; S.panel = 'object'; commit(); render(); refreshThumbs(); buildPanel(); toast('The background is now a layer'); }
 function arrangeBody(o) {
   const num = (label, get, set, dis) => { const i = h('input', { type: 'number', class: 'num wide', value: Math.round(get()), disabled: dis ? true : null, 'aria-label': label, inputmode: 'numeric' }); i.addEventListener('change', () => { set(+i.value || 0); render(); commit(); refreshThumbs(); }); return h('div', { class: 'fld' }, h('label', null, label), i); };
   const refs = {};
@@ -1421,7 +1515,8 @@ function arrangeBody(o) {
   return [row,
     h('div', { class: 'row' }, slider('Rotation', -180, 180, 1, () => o.rot, v => { o.rot = v; }, v => Math.round(v) + '°'), slider('Opacity', 0, 1, 0.01, () => o.opacity, v => { o.opacity = v; }, v => Math.round(v * 100) + '%')),
     h('div', { class: 'row' }, act('copy', 'Duplicate', dupObject), act('copy', 'To next slide', copyToNext), act('front', 'Front', () => moveZ(o, 'front')), act('up', 'Forward', () => moveZ(o, 'up')), act('down', 'Backward', () => moveZ(o, 'down')), act('back', 'Back', () => moveZ(o, 'back')),
-      act(o.locked ? 'lock' : 'unlock', o.locked ? 'Unlock' : 'Lock', () => { o.locked = !o.locked; commit(); render(); buildPanel(); }), act('trash', 'Delete', delObject, 'danger'))];
+      act(o.locked ? 'lock' : 'unlock', o.locked ? 'Unlock' : 'Lock', () => { o.locked = !o.locked; commit(); render(); buildPanel(); }), act('trash', 'Delete', delObject, 'danger')),
+    h('div', { class: 'row' }, act('copy', 'Copy style', () => copyStyle(o)), act('paste', 'Paste style', () => pasteStyle(o)), ...(o.type === 'image' ? [act('canvas', 'Set as background', () => setAsBg(o))] : []))];
 }
 function cropSet(o, key, val) {
   const a = ASSETS.get(o.src); if (!a || !a.ok) return;
@@ -1497,7 +1592,9 @@ function pickCorner(o, ek) {
 }
 const BODIES = {
   text: {
-    Text: o => { const ta = h('textarea', { class: 'txt', 'aria-label': 'Text', value: o.text }); ta.addEventListener('input', () => { adjustRuns(o, o.text, ta.value); o.text = ta.value; render(); commitSoon(); }); ta.addEventListener('change', () => { commit(); refreshThumbs(); }); return [ta]; },
+    Text: o => { const ta = h('textarea', { class: 'txt', 'aria-label': 'Text', value: o.text }); ta.addEventListener('input', () => { adjustRuns(o, o.text, ta.value); o.text = ta.value; render(); commitSoon(); }); ta.addEventListener('change', () => { commit(); refreshThumbs(); });
+      const setCase = k => { const t = o.text, n = k === 'up' ? t.toUpperCase() : k === 'low' ? t.toLowerCase() : t.toLowerCase().replace(/(^\s*|[.!?]\s+)([a-z])/g, (m, a, b) => a + b.toUpperCase()); if (n.length !== t.length) return; ta.value = n; o.text = n; LAYOUT.clear(); commit(); render(); refreshThumbs(); };
+      return [ta, h('div', { class: 'row' }, act('check', 'Sentence case', () => setCase('sen')), act('check', 'lowercase', () => setCase('low')), act('check', 'UPPERCASE', () => setCase('up')))]; },
     Font: o => {
       const rec = getRecent(), cats = [...(rec.length ? ['Recent'] : []), ...Object.keys(FONT_CATS), ...(P.fonts.length ? ['Yours'] : [])];
       const cur = S.fontCat && cats.includes(S.fontCat) ? S.fontCat : catOf(o.font);
@@ -1634,7 +1731,17 @@ function syncStripActions() {
   const n = P.slides.length;
   const set = (id, dis) => { const b = $('#' + id); if (b) b.disabled = dis; };
   set('aDel', n <= 1); set('aLeft', S.active === 0); set('aRight', S.active === n - 1);
+  const lk = $('#aLock'); if (lk && slide()) { const L = slide().locked; lk.innerHTML = ic(L ? 'lock' : 'unlock', 15) + `<span>${L ? 'Unlock page' : 'Lock page'}</span>`; }
   const l = $('#aLbl'); if (l) l.textContent = `${S.active + 1} / ${n}`;
+}
+function openNotes() {
+  const sl = slide(); const ta = h('textarea', { class: 'txt', rows: 8, placeholder: 'Notes for this slide, like a script or reminders. They are saved with the project and are not part of the export.', 'aria-label': 'Slide notes' });
+  ta.value = sl.notes || ''; ta.addEventListener('input', () => { sl.notes = ta.value; commitSoon(); });
+  modal('Slide ' + (S.active + 1) + ' notes', h('div', null, ta));
+}
+function togglePageLock() {
+  const sl = slide(); sl.locked = !sl.locked; if (sl.locked) S.selId = null;
+  commit(); render(); buildPanel(); buildStripActions(); toast(sl.locked ? 'Page locked. Nothing on it can be moved by accident.' : 'Page unlocked');
 }
 function buildStripActions() {
   const bar = $('#sactions'); bar.textContent = '';
@@ -1642,7 +1749,8 @@ function buildStripActions() {
   bar.append(h('span', { class: 'chip lbl', id: 'aLbl' }, '1 / 1'),
     chip('aAdd', 'plus', 'Add', () => addSlide()), chip('aDup', 'copy', 'Duplicate', dupSlide), chip('aDel', 'trash', 'Delete', delSlide, 'danger'),
     chip('aLeft', 'left', 'Move left', () => moveSlide(-1)), chip('aRight', 'right', 'Move right', () => moveSlide(1)),
-    chip('aPaste', 'paste', 'Paste text', openPaste), chip('aCar', 'slides', 'Carousel', openCarousel));
+    chip('aPaste', 'paste', 'Paste text', openPaste), chip('aCar', 'slides', 'Carousel', openCarousel),
+    chip('aNotes', 'paste', 'Notes', openNotes), chip('aLock', 'unlock', 'Lock page', togglePageLock));
 }
 function slideCapOk(extra = 1) { if (P.slides.length + extra > MAX_SLIDES) { toast(`A carousel can hold up to ${MAX_SLIDES} slides.`); return false; } return true; }
 function addSlide() {
@@ -2052,7 +2160,7 @@ function openProjects() {
     else if (!idx.length) host.append(h('p', { class: 'empty' }, 'Nothing saved yet. Tap “Save this project”.'));
     else host.append(h('div', { class: 'rowlist' }, idx.map(r => projRow(r.name, r, 'Open', go('proj:' + r.id), async () => { try { await idb.del('proj:' + r.id); await idb.set('index', idx.filter(x => x.id !== r.id)); draw(); } catch { toast('Could not delete'); } }))));
     host.append(h('div', { class: 'lab' }, 'Files and templates'), h('p', { class: 'tinyp' }, 'A project file works as a template. Design it once, tap Download project file, then open that file any time to start from it.'), h('div', { class: 'row' },
-      h('button', { type: 'button', class: 'btn', html: ic('export', 18) + '<span>Download project file</span>', onclick: async () => { try { await deliver(new Blob([JSON.stringify(serializeProject())], { type: 'application/json' }), (P.name.replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '') || 'zon-project') + '.zon.json'); } catch (e) { toast(errMsg(e)); } } }),
+      h('button', { type: 'button', class: 'btn', html: ic('export', 18) + '<span>Download project file</span>', onclick: async () => { try { await deliver(await makeZip([{ name: 'project.zon.json', blob: new Blob([JSON.stringify(serializeProject())], { type: 'application/json' }) }]), (P.name.replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '') || 'zon-project') + '.zon.zip'); } catch (e) { toast(errMsg(e)); } } }),
       h('button', { type: 'button', class: 'btn', html: ic('upload', 18) + '<span>Open project file</span>', onclick: () => $('#fProj').click() })));
   };
   draw();
@@ -2171,9 +2279,25 @@ $('#fFont').addEventListener('change', async e => {
     o.font = nm; S.tab = 'Font'; commit(); fitCanvas(); renderStrip(); buildPanel(); toast(`Font “${nm}” imported`);
   } catch { toast('That file is not a usable font. Try a .ttf, .otf or .woff file.'); }
 });
+async function unzipFirstJson(file) {
+  const u8 = new Uint8Array(await file.arrayBuffer()), dv = new DataView(u8.buffer); let p = 0;
+  while (p + 30 <= u8.length && dv.getUint32(p, true) === 0x04034b50) {
+    const flags = dv.getUint16(p + 6, true), method = dv.getUint16(p + 8, true), csize = dv.getUint32(p + 18, true), nlen = dv.getUint16(p + 26, true), xlen = dv.getUint16(p + 28, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 30, p + 30 + nlen)), start = p + 30 + nlen + xlen;
+    if (flags & 8) throw new Error('That zip file type is not supported. Use a project file saved by Zon Studio.');
+    const data = u8.subarray(start, start + csize);
+    if (/\.json$/i.test(name)) {
+      if (method === 0) return new TextDecoder().decode(data);
+      if (method === 8) return await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+      throw new Error('That zip file type is not supported.');
+    }
+    p = start + csize;
+  }
+  throw new Error('No project was found inside that zip.');
+}
 $('#fProj').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try { flushCommit(); const snap = serializeProject(); await loadProject(JSON.parse(await f.text())); await stashPrevious(snap); toast('Opened “' + P.name + '”'); document.querySelectorAll('.mbg').forEach(x => x.remove()); }
+  try { flushCommit(); const snap = serializeProject(); const head = new Uint8Array(await f.slice(0, 2).arrayBuffer()); await loadProject(JSON.parse(head[0] === 0x50 && head[1] === 0x4b ? await unzipFirstJson(f) : await f.text())); await stashPrevious(snap); toast('Opened “' + P.name + '”'); document.querySelectorAll('.mbg').forEach(x => x.remove()); }
   catch (err) { toast(err.message && !/JSON/.test(err.message) ? err.message : 'That file could not be read as a Zon Studio project.'); }
 });
 

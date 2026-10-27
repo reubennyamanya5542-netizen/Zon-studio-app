@@ -1,14 +1,5 @@
-<title>Zon Studio</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Oswald:wght@400;700&family=Anton&family=Bebas+Neue&family=Archivo+Black&family=Playfair+Display:wght@400;700&family=DM+Serif+Display&family=Abril+Fatface&family=Cormorant+Garamond:wght@400;700&family=Roboto+Slab:wght@400;700&family=Lobster&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@400;700&family=Bangers&family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway&family=Lato&family=Nunito&family=Open+Sans&family=Rubik&family=Manrope&family=Sora&family=Space+Grotesk&family=League+Spartan&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne&family=Unbounded&family=Kanit&family=Prompt&family=Fredoka&family=Merriweather&family=Lora&family=Libre+Baskerville&family=Bodoni+Moda&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rozha+One&family=Cinzel&family=Zilla+Slab&family=Gloock&family=Instrument+Serif&family=Fjalla+One&family=Teko&family=Staatliches&family=Barlow+Condensed&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display&family=Saira+Condensed&family=Russo+One&family=Bungee&family=Righteous&family=Black+Ops+One&family=Alfa+Slab+One&family=Rubik+Mono+One&family=Titan+One&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Chewy&family=Shrikhand&family=Monoton&family=Press+Start+2P&family=Orbitron&family=Audiowide&family=Passion+One&family=Bowlby+One&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Squada+One&family=Lilita+One&family=Paytone+One&family=Concert+One&family=Fugaz+One&family=Racing+Sans+One&family=Vast+Shadow&family=Faster+One&family=Spicy+Rice&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oleo+Script&family=Chakra+Petch&family=Creepster&family=Nosifer&family=Metal+Mania&family=Pirata+One&family=UnifrakturCook&family=Satisfy&family=Great+Vibes&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Dancing+Script&family=Sacramento&family=Yellowtail&family=Courgette&family=Kaushan+Script&family=Amatic+SC&family=Indie+Flower&family=Shadows+Into+Light&family=Rock+Salt&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gochi+Hand&family=Patrick+Hand&family=Special+Elite&display=swap">
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#121317"><style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Zon Studio</title>
+<link rel="stylesheet" href="fonts.css">
 <style>
 /* Layout: one column. Top bar, central canvas, slide strip, context panel, bottom toolbar. */
 :root{
@@ -318,11 +309,11 @@ const ibtn = (icon, label, onclick, cls = '') => h('button', { class: 'ib ' + cl
 
 /* ============ catalog ============ */
 const FONT_CATS = {
-  Sans: ['Montserrat', 'Poppins', 'Raleway', 'Lato', 'Nunito', 'Open Sans', 'Rubik', 'Manrope', 'Sora', 'Space Grotesk', 'League Spartan', 'Syne', 'Unbounded', 'Kanit', 'Prompt', 'Fredoka', 'Sans'],
-  Serif: ['Playfair Display', 'DM Serif Display', 'Cormorant Garamond', 'Roboto Slab', 'Merriweather', 'Lora', 'Libre Baskerville', 'Bodoni Moda', 'Rozha One', 'Cinzel', 'Zilla Slab', 'Gloock', 'Instrument Serif', 'Serif'],
-  Display: ['Anton', 'Bebas Neue', 'Oswald', 'Archivo Black', 'Fjalla One', 'Teko', 'Staatliches', 'Barlow Condensed', 'Big Shoulders Display', 'Saira Condensed', 'Russo One', 'Bungee', 'Righteous', 'Black Ops One', 'Alfa Slab One', 'Rubik Mono One', 'Titan One', 'Luckiest Guy', 'Chewy', 'Shrikhand', 'Monoton', 'Press Start 2P', 'Orbitron', 'Audiowide', 'Bangers', 'Passion One', 'Bowlby One', 'Squada One', 'Lilita One', 'Paytone One', 'Concert One', 'Fugaz One', 'Racing Sans One', 'Vast Shadow', 'Faster One', 'Spicy Rice', 'Oleo Script', 'Chakra Petch', 'Creepster', 'Nosifer', 'Metal Mania', 'Pirata One', 'UnifrakturCook', 'Permanent Marker', 'Abril Fatface'],
-  Script: ['Lobster', 'Pacifico', 'Caveat', 'Satisfy', 'Great Vibes', 'Dancing Script', 'Sacramento', 'Yellowtail', 'Courgette', 'Kaushan Script', 'Amatic SC', 'Indie Flower', 'Shadows Into Light', 'Rock Salt', 'Gochi Hand', 'Patrick Hand'],
-  Mono: ['Space Mono', 'Special Elite', 'Mono']
+  Sans: ["Montserrat", "Poppins", "Raleway", "Lato", "Nunito", "Open Sans", "Rubik", "Manrope", "Sora", "Space Grotesk", "League Spartan", "Syne", "Unbounded", "Kanit", "Prompt", "Fredoka", "Sans"],
+  Serif: ["Playfair Display", "DM Serif Display", "Cormorant Garamond", "Roboto Slab", "Merriweather", "Lora", "Libre Baskerville", "Bodoni Moda", "Rozha One", "Cinzel", "Zilla Slab", "Gloock", "Instrument Serif", "Serif"],
+  Display: ["Anton", "Bebas Neue", "Oswald", "Archivo Black", "Fjalla One", "Teko", "Staatliches", "Barlow Condensed", "Big Shoulders Display", "Saira Condensed", "Russo One", "Bungee", "Righteous", "Black Ops One", "Alfa Slab One", "Rubik Mono One", "Titan One", "Luckiest Guy", "Chewy", "Shrikhand", "Monoton", "Press Start 2P", "Orbitron", "Audiowide", "Bangers", "Passion One", "Bowlby One", "Squada One", "Lilita One", "Paytone One", "Concert One", "Fugaz One", "Racing Sans One", "Vast Shadow", "Faster One", "Spicy Rice", "Oleo Script", "Chakra Petch", "Creepster", "Nosifer", "Metal Mania", "Pirata One", "UnifrakturCook", "Permanent Marker", "Abril Fatface"],
+  Script: ["Lobster", "Pacifico", "Caveat", "Satisfy", "Great Vibes", "Dancing Script", "Sacramento", "Yellowtail", "Courgette", "Kaushan Script", "Amatic SC", "Indie Flower", "Shadows Into Light", "Rock Salt", "Gochi Hand", "Patrick Hand"],
+  Mono: ["Space Mono", "Special Elite", "Mono"]
 };
 const RECENT_KEY = 'zon-recent-fonts';
 const getRecent = () => { try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]').filter(n => allFontNames().includes(n)); } catch { return []; } };
@@ -357,9 +348,61 @@ const STICKERS = [
   { id: 'bubble', n: 'Bubble', d: 'M4 4h16a2 2 0 012 2v9a2 2 0 01-2 2h-8l-5 4v-4H4a2 2 0 01-2-2V6a2 2 0 012-2z' },
   { id: 'spark', n: 'Sparkle', d: 'M12 2c.8 5.2 4.8 9.2 10 10-5.2.8-9.2 4.8-10 10-.8-5.2-4.8-9.2-10-10 5.2-.8 9.2-4.8 10-10z' },
   { id: 'target', n: 'Target', d: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 4a6 6 0 110 12 6 6 0 010-12z', eo: true },
-  { id: 'plus', n: 'Plus', d: 'M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z' }
+  { id: 'plus', n: 'Plus', d: 'M10 3h4v7h7v4h-7v7h-4v-7H3v-4h7z' },
+  { id: 'dot', n: 'Dot', d: 'M12 2a10 10 0 100 20 10 10 0 000-20z' },
+  { id: 'ringst', n: 'Ring', d: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 3.5a6.5 6.5 0 110 13 6.5 6.5 0 010-13z', eo: true },
+  { id: 'sun', n: 'Sun', d: 'M12 7a5 5 0 100 10 5 5 0 000-10zM11 1h2v3h-2zM11 20h2v3h-2zM1 11h3v2H1zM20 11h3v2h-3zM4.2 5.6L5.6 4.2 7.8 6.4 6.4 7.8zM19.8 5.6L18.4 4.2 16.2 6.4 17.6 7.8zM4.2 18.4L5.6 19.8 7.8 17.6 6.4 16.2zM19.8 18.4L18.4 19.8 16.2 17.6 17.6 16.2z' },
+  { id: 'moon', n: 'Moon', d: 'M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z' },
+  { id: 'cloud', n: 'Cloud', d: 'M6.5 19a4.5 4.5 0 01-.6-8.96A6 6 0 0117.4 9.3 4.8 4.8 0 0117.5 19z' },
+  { id: 'drop', n: 'Drop', d: 'M12 2.5s6.5 6.8 6.5 11.5a6.5 6.5 0 01-13 0C5.5 9.3 12 2.5 12 2.5z' },
+  { id: 'leaf', n: 'Leaf', d: 'M20 4C10 4 4 9 4 16c0 1.5.3 2.8.8 4 1.4-4 4.5-7 9.2-9-4 3-6.5 6-7.5 10 .9.3 2 .5 3 .5 7 0 11-6 11-14 0-1.2-.2-2.2-.5-3.5z' },
+  { id: 'tree', n: 'Pine', d: 'M12 2l6 8h-3.5l5 7H13v5h-2v-5H4.5l5-7H6z' },
+  { id: 'flower', n: 'Flower', d: 'M8.6 6.7a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0-6.8 0zM13.64 10.36a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0-6.8 0zM11.72 16.29a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0-6.8 0zM5.48 16.29a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0-6.8 0zM3.56 10.36a3.4 3.4 0 1 0 6.8 0a3.4 3.4 0 1 0-6.8 0zM12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8z' },
+  { id: 'badge', n: 'Seal', d: 'M12 1L13.83 2.78L16.21 1.84L17.22 4.18L19.78 4.22L19.82 6.78L22.16 7.79L21.22 10.17L23 12L21.22 13.83L22.16 16.21L19.82 17.22L19.78 19.78L17.22 19.82L16.21 22.16L13.83 21.22L12 23L10.17 21.22L7.79 22.16L6.78 19.82L4.22 19.78L4.18 17.22L1.84 16.21L2.78 13.83L1 12L2.78 10.17L1.84 7.79L4.18 6.78L4.22 4.22L6.78 4.18L7.79 1.84L10.17 2.78z' },
+  { id: 'burst', n: 'Burst', d: 'M12 0.5L13.86 5.05L17.75 2.04L17.09 6.91L21.96 6.25L18.95 10.14L23.5 12L18.95 13.86L21.96 17.75L17.09 17.09L17.75 21.96L13.86 18.95L12 23.5L10.14 18.95L6.25 21.96L6.91 17.09L2.04 17.75L5.05 13.86L0.5 12L5.05 10.14L2.04 6.25L6.91 6.91L6.25 2.04L10.14 5.05z' },
+  { id: 'star6', n: 'Star 6', d: 'M12 1L14.8 7.15L21.53 6.5L17.6 12L21.53 17.5L14.8 16.85L12 23L9.2 16.85L2.47 17.5L6.4 12L2.47 6.5L9.2 7.15z' },
+  { id: 'star8', n: 'Star 8', d: 'M12 0.8L14.3 6.46L19.92 4.08L17.54 9.7L23.2 12L17.54 14.3L19.92 19.92L14.3 17.54L12 23.2L9.7 17.54L4.08 19.92L6.46 14.3L0.8 12L6.46 9.7L4.08 4.08L9.7 6.46z' },
+  { id: 'gear', n: 'Gear', d: 'M9.23 4.49L9.91 1.71L14.09 1.71L14.77 4.49L15.35 4.73L17.8 3.25L20.75 6.2L19.27 8.65L19.51 9.23L22.29 9.91L22.29 14.09L19.51 14.77L19.27 15.35L20.75 17.8L17.8 20.75L15.35 19.27L14.77 19.51L14.09 22.29L9.91 22.29L9.23 19.51L8.65 19.27L6.2 20.75L3.25 17.8L4.73 15.35L4.49 14.77L1.71 14.09L1.71 9.91L4.49 9.23L4.73 8.65L3.25 6.2L6.2 3.25L8.65 4.73zM12 8.4 a3.6 3.6 0 1 0 0 7.2a3.6 3.6 0 1 0 0 -7.2z', eo: true },
+  { id: 'smile', n: 'Smile', d: 'M12 2a10 10 0 100 20 10 10 0 000-20zM8.5 8.7a1.4 1.4 0 110 2.8 1.4 1.4 0 010-2.8zM15.5 8.7a1.4 1.4 0 110 2.8 1.4 1.4 0 010-2.8zM7.2 13.5h9.6a4.8 4.8 0 01-9.6 0z', eo: true },
+  { id: 'thumb', n: 'Like', d: 'M2 10h4v11H2zM8 21V10l4-8c1.3 0 2.3 1 2 2.3L13.3 8H20a2 2 0 012 2.3l-1.3 8A2 2 0 0118.7 21z' },
+  { id: 'eye', n: 'Eye', d: 'M12 5C6.5 5 2.5 9 1 12c1.5 3 5.5 7 11 7s9.5-4 11-7c-1.5-3-5.5-7-11-7zm0 3a4 4 0 110 8 4 4 0 010-8z', eo: true },
+  { id: 'bell', n: 'Bell', d: 'M12 22a2.2 2.2 0 002.2-2.2H9.8A2.2 2.2 0 0012 22zm7-6V11a7 7 0 00-5-6.7V3.5a2 2 0 10-4 0v.8A7 7 0 005 11v5l-2 2v1h18v-1z' },
+  { id: 'mail', n: 'Mail', d: 'M2 5h20v2.2l-10 7-10-7zM2 9.6l10 7 10-7V19H2z' },
+  { id: 'phone', n: 'Phone', d: 'M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm5 17.2a1.1 1.1 0 100 2.2 1.1 1.1 0 000-2.2zM7 5v12h10V5z', eo: true },
+  { id: 'camera', n: 'Camera', d: 'M9 3L7.2 5H4a2 2 0 00-2 2v11a2 2 0 002 2h16a2 2 0 002-2V7a2 2 0 00-2-2h-3.2L15 3zm3 5.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9z', eo: true },
+  { id: 'play', n: 'Play', d: 'M8 5v14l11-7z' },
+  { id: 'music', n: 'Music', d: 'M9 3v10.6A3.5 3.5 0 1011 17V7.4l8-1.6v6.8A3.5 3.5 0 1021 16V3z' },
+  { id: 'trophy', n: 'Trophy', d: 'M7 3h10v2h3v3a4 4 0 01-4 4 5 5 0 01-3 2.9V17h3v2H8v-2h3v-2.1A5 5 0 018 12a4 4 0 01-4-4V5h3zM6 7H6v1a2 2 0 001.4 1.9A9 9 0 017 7zm12 0h-1.1c.1.9 0 1.9-.3 2.9A2 2 0 0018 8z' },
+  { id: 'rocket', n: 'Rocket', d: 'M12 2c3 2 5 6 5 10l2 3v3l-3-1.5-1 3h-6l-1-3L5 18v-3l2-3c0-4 2-8 5-10zm0 5a2 2 0 100 4 2 2 0 000-4z', eo: true },
+  { id: 'bulb', n: 'Idea', d: 'M12 2a7 7 0 00-4 12.7V17a1 1 0 001 1h6a1 1 0 001-1v-2.3A7 7 0 0012 2zM9 19.5h6V21a1 1 0 01-1 1h-4a1 1 0 01-1-1z' },
+  { id: 'lock', n: 'Lock', d: 'M12 1a5 5 0 00-5 5v3H5a1 1 0 00-1 1v11a1 1 0 001 1h14a1 1 0 001-1V10a1 1 0 00-1-1h-2V6a5 5 0 00-5-5zm0 2.5A2.5 2.5 0 0114.5 6v3h-5V6A2.5 2.5 0 0112 3.5z', eo: true },
+  { id: 'pin', n: 'Location', d: 'M12 1a8 8 0 00-8 8c0 6 8 14 8 14s8-8 8-14a8 8 0 00-8-8zm0 4.5a3.5 3.5 0 110 7 3.5 3.5 0 010-7z', eo: true },
+  { id: 'home', n: 'Home', d: 'M12 2L1 12h3v10h6v-6h4v6h6V12h3z' },
+  { id: 'chart', n: 'Chart', d: 'M3 13h4v8H3zM10 3h4v18h-4zM17 9h4v12h-4z' },
+  { id: 'trend', n: 'Growth', d: 'M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z' },
+  { id: 'check2', n: 'Tick', d: 'M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z' },
+  { id: 'close', n: 'Close', d: 'M19 6.4L17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z' },
+  { id: 'excl', n: 'Alert', d: 'M12 2a10 10 0 100 20 10 10 0 000-20zm-1 5h2v7h-2zm0 9h2v2h-2z', eo: true },
+  { id: 'warn', n: 'Warning', d: 'M12 2L1 21h22zM11 10h2v5h-2zm0 6.5h2v2h-2z', eo: true },
+  { id: 'shield', n: 'Shield', d: 'M12 2L4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5z' },
+  { id: 'tag', n: 'Tag', d: 'M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z', eo: true },
+  { id: 'user', n: 'Person', d: 'M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-5 0-9 2.5-9 5.5V22h18v-2.5c0-3-4-5.5-9-5.5z' },
+  { id: 'arrow2', n: 'Two-way', d: 'M3 12l5-5v3.5h8V7l5 5-5 5v-3.5H8V17z' },
+  { id: 'arrowc', n: 'Next', d: 'M12 2a10 10 0 100 20 10 10 0 000-20zm1 5l5 5-5 5-1.4-1.4 2.6-2.6H6v-2h8.2l-2.6-2.6z', eo: true },
+  { id: 'medal', n: 'Medal', d: 'M12 2a6.5 6.5 0 100 13 6.5 6.5 0 000-13zM8 14.5L6 22l6-2.8 6 2.8-2-7.5a8 8 0 01-8 0z' },
+  { id: 'gem', n: 'Gem', d: 'M6 3h12l4 6-10 12L2 9z' },
+  { id: 'pencil', n: 'Pencil', d: 'M3 17.25V21h3.75L17.8 9.94l-3.75-3.75zM20.7 7.04a1 1 0 000-1.41l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75z' },
+  { id: 'cap', n: 'Graduate', d: 'M12 3L1 9l11 6 9-4.9V17h2V9zM5 13.2v4L12 21l7-3.8v-4L12 17z' },
+  { id: 'flag', n: 'Flag', d: 'M5 2h2v20H5zM8 3h12l-3 4.5L20 12H8z' },
+  { id: 'cursor', n: 'Pointer', d: 'M4 2l16 9-7 2-2 7z' },
+  { id: 'paw', n: 'Paw', d: 'M12 13c-3 0-6 2.5-6 5 0 2 1.8 3 3.2 3 1 0 1.8-.4 2.8-.4s1.8.4 2.8.4c1.4 0 3.2-1 3.2-3 0-2.5-3-5-6-5zM5.5 9a2 2.5 0 100 5 2 2.5 0 000-5zM18.5 9a2 2.5 0 100 5 2 2.5 0 000-5zM9 3a2 2.5 0 100 5 2 2.5 0 000-5zM15 3a2 2.5 0 100 5 2 2.5 0 000-5z' },
+  { id: 'diamond', n: 'Diamond', d: 'M12 1l11 11-11 11L1 12z' },
+  { id: 'hexa', n: 'Hexagon', d: 'M12 1.5l9 5.25v10.5L12 22.5l-9-5.25V6.75z' }
 ];
-const SHAPES = [['rect', 'Rectangle'], ['round', 'Rounded'], ['circle', 'Circle'], ['ring', 'Ring'], ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['hexagon', 'Hexagon'], ['star', 'Star'], ['heart', 'Heart'], ['arrow', 'Arrow'], ['plus', 'Cross'], ['line', 'Line']];
+const SHAPES = [['rect', 'Rectangle'], ['round', 'Rounded'], ['circle', 'Circle'], ['ring', 'Ring'], ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['hexagon', 'Hexagon'], ['star', 'Star'], ['heart', 'Heart'], ['arrow', 'Arrow'], ['plus', 'Cross'], ['line', 'Line'],
+  ['pentagon', 'Pentagon'], ['octagon', 'Octagon'], ['parallelogram', 'Slant'], ['trapezoid', 'Trapezoid'], ['rtriangle', 'Right triangle'], ['star4', 'Star 4'], ['star6', 'Star 6'], ['burst', 'Burst'], ['badge', 'Seal'], ['chevron', 'Chevron'], ['arrow2', 'Two-way arrow'], ['lightning', 'Lightning'], ['cloud', 'Cloud'], ['moon', 'Moon'], ['semicircle', 'Half circle'], ['quarter', 'Quarter'], ['drop', 'Drop'], ['bubble', 'Speech'], ['flower', 'Flower'], ['gear', 'Gear'], ['blob', 'Blob'], ['squircle', 'Squircle'], ['pill', 'Pill'], ['frame', 'Frame'], ['shield', 'Shield'], ['ribbon', 'Banner'], ['arch', 'Arch'], ['tag', 'Label'], ['house', 'House'], ['leaf', 'Leaf'], ['pin', 'Pin']];
+const SHAPE_W = { arrow: 1.3, arrow2: 1.4, chevron: 1.2, parallelogram: 1.2, trapezoid: 1.2, ribbon: 1.3, tag: 1.3, pill: 1.3, cloud: 1.2, semicircle: 1.2, bubble: 1.1 };
+const SHAPE_H = { rect: 0.7, round: 0.7, pill: 0.45, parallelogram: 0.6, trapezoid: 0.65, ribbon: 0.55, tag: 0.6, semicircle: 0.5, cloud: 0.7, bubble: 0.8, chevron: 0.8, arrow2: 0.8 };
 const SHAPE_NAME = Object.fromEntries(SHAPES);
 
 /* ============ state ============ */
@@ -388,7 +431,7 @@ function newShape(kind) {
   const line = kind === 'line', ring = kind === 'ring';
   const sq = P.w * 0.34;
   return {
-    id: uid(), type: 'shape', kind, w: line ? P.w * 0.5 : kind === 'arrow' ? sq * 1.3 : sq, h: line ? 24 : sq * (kind === 'rect' || kind === 'round' ? 0.7 : 1),
+    id: uid(), type: 'shape', kind, w: line ? P.w * 0.5 : sq * (SHAPE_W[kind] || 1), h: line ? 24 : sq * (SHAPE_H[kind] || 1),
     fill: { mode: (line || ring) ? 'none' : 'solid', c1: '#3b82f6', c2: '#8b5cf6', angle: 135 },
     stroke: { w: line ? 12 : ring ? 14 : 0, color: line || ring ? '#ffffff' : '#ffffff' }, radius: kind === 'round' ? 60 : 0, shadow: defShadow(),
     x: P.w / 2, y: P.h / 2, rot: 0, opacity: 1, locked: false, hidden: false
@@ -411,7 +454,7 @@ function seedProject() {
 }
 
 /* ============ settings & theme ============ */
-const APP_VERSION = '1.5'; // the build workflow replaces this with the build number
+const APP_VERSION = '1.5.17'; // the build workflow replaces this with the build number
 const SET_DEF = { theme: 'dark', accent: '#3b82f6', autosave: true, restore: true, snap: true, hints: true, intro: true, fmt: 'jpg', q: 0.92, defSize: '1080x1350' };
 const SET = { ...SET_DEF };
 try { Object.assign(SET, JSON.parse(localStorage.getItem('zon-settings') || '{}')); } catch { /* storage blocked: defaults apply */ }
@@ -580,6 +623,9 @@ function rr(p, x, y, w, h, r) {
   p.lineTo(x + r, y + h); p.arcTo(x, y + h, x, y + h - r, r); p.lineTo(x, y + r); p.arcTo(x, y, x + r, y, r); p.closePath();
 }
 function poly(p, pts, w, h) { pts.forEach(([u, v], i) => { const X = u * w / 2, Y = v * h / 2; i ? p.lineTo(X, Y) : p.moveTo(X, Y); }); p.closePath(); }
+function ngon(p, n, w, h, rot = -90) { poly(p, Array.from({ length: n }, (_, i) => [Math.cos(rad(rot + i * 360 / n)), Math.sin(rad(rot + i * 360 / n))]), w, h); }
+function starP(p, n, ir, w, h) { poly(p, Array.from({ length: n * 2 }, (_, i) => { const r = i % 2 ? ir : 1, a = rad(-90 + i * 180 / n); return [Math.cos(a) * r, Math.sin(a) * r]; }), w, h); }
+function polar(p, f, w, h, n) { poly(p, Array.from({ length: n }, (_, i) => { const t = i / n * Math.PI * 2 - Math.PI / 2, r = f(t); return [Math.cos(t) * r, Math.sin(t) * r]; }), w, h); }
 function shapePath(o) {
   const w = o.w, h = o.h, p = new Path2D();
   switch (o.kind) {
@@ -601,6 +647,70 @@ function shapePath(o) {
       p.closePath(); break;
     }
     case 'line': p.moveTo(-w / 2, 0); p.lineTo(w / 2, 0); break;
+    case 'pentagon': ngon(p, 5, w, h); break;
+    case 'octagon': ngon(p, 8, w, h, -22.5); break;
+    case 'parallelogram': poly(p, [[-0.6, -1], [1, -1], [0.6, 1], [-1, 1]], w, h); break;
+    case 'trapezoid': poly(p, [[-0.55, -1], [0.55, -1], [1, 1], [-1, 1]], w, h); break;
+    case 'rtriangle': poly(p, [[-1, -1], [-1, 1], [1, 1]], w, h); break;
+    case 'star4': starP(p, 4, 0.38, w, h); break;
+    case 'star6': starP(p, 6, 0.55, w, h); break;
+    case 'burst': starP(p, 12, 0.72, w, h); break;
+    case 'badge': starP(p, 16, 0.88, w, h); break;
+    case 'chevron': poly(p, [[-1, -1], [0.3, -1], [1, 0], [0.3, 1], [-1, 1], [-0.3, 0]], w, h); break;
+    case 'arrow2': poly(p, [[-1, 0], [-0.4, -0.85], [-0.4, -0.3], [0.4, -0.3], [0.4, -0.85], [1, 0], [0.4, 0.85], [0.4, 0.3], [-0.4, 0.3], [-0.4, 0.85]], w, h); break;
+    case 'lightning': poly(p, [[0.25, -1], [-0.7, 0.1], [-0.1, 0.1], [-0.35, 1], [0.7, -0.2], [0.1, -0.2], [0.55, -1]], w, h); break;
+    case 'ribbon': poly(p, [[-1, -0.6], [1, -0.6], [0.72, 0], [1, 0.6], [-1, 0.6], [-0.72, 0]], w, h); break;
+    case 'tag': poly(p, [[-1, -0.7], [0.45, -0.7], [1, 0], [0.45, 0.7], [-1, 0.7]], w, h); break;
+    case 'house': poly(p, [[0, -1], [1, -0.1], [0.72, -0.1], [0.72, 1], [-0.72, 1], [-0.72, -0.1], [-1, -0.1]], w, h); break;
+    case 'frame': poly(p, [[-1, -1], [1, -1], [1, 1], [-1, 1]], w, h); { const q = 0.62; [[-q, -q], [-q, q], [q, q], [q, -q]].forEach(([u, v], i) => { const X = u * w / 2, Y = v * h / 2; i ? p.lineTo(X, Y) : p.moveTo(X, Y); }); p.closePath(); } break;
+    case 'cloud': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(-0.62), Y(0.8)); p.lineTo(X(0.58), Y(0.8));
+      p.bezierCurveTo(X(1.18), Y(0.8), X(1.18), Y(-0.1), X(0.68), Y(-0.1));
+      p.bezierCurveTo(X(0.72), Y(-0.75), X(0.02), Y(-1.05), X(-0.2), Y(-0.45));
+      p.bezierCurveTo(X(-0.45), Y(-0.75), X(-0.95), Y(-0.55), X(-0.82), Y(-0.05));
+      p.bezierCurveTo(X(-1.3), Y(0.05), X(-1.2), Y(0.8), X(-0.62), Y(0.8)); p.closePath(); break;
+    }
+    case 'moon': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(0.35), Y(-1)); p.bezierCurveTo(X(-1.35), Y(-0.95), X(-1.35), Y(0.95), X(0.35), Y(1));
+      p.bezierCurveTo(X(-0.55), Y(0.6), X(-0.55), Y(-0.6), X(0.35), Y(-1)); p.closePath(); break;
+    }
+    case 'semicircle': p.moveTo(-w / 2, h / 2); p.ellipse(0, h / 2, w / 2, h, 0, Math.PI, Math.PI * 2); p.closePath(); break;
+    case 'quarter': p.moveTo(-w / 2, h / 2); p.ellipse(-w / 2, h / 2, w, h, 0, -Math.PI / 2, 0); p.closePath(); break;
+    case 'drop': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(0), Y(-1)); p.bezierCurveTo(X(0.2), Y(-0.6), X(0.8), Y(-0.15), X(0.8), Y(0.3)); p.bezierCurveTo(X(0.8), Y(0.75), X(0.42), Y(1), X(0), Y(1));
+      p.bezierCurveTo(X(-0.42), Y(1), X(-0.8), Y(0.75), X(-0.8), Y(0.3)); p.bezierCurveTo(X(-0.8), Y(-0.15), X(-0.2), Y(-0.6), X(0), Y(-1)); p.closePath(); break;
+    }
+    case 'bubble': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(-0.7), Y(-1)); p.lineTo(X(0.7), Y(-1)); p.quadraticCurveTo(X(1), Y(-1), X(1), Y(-0.6)); p.lineTo(X(1), Y(0.2)); p.quadraticCurveTo(X(1), Y(0.55), X(0.7), Y(0.55));
+      p.lineTo(X(-0.1), Y(0.55)); p.lineTo(X(-0.62), Y(1)); p.lineTo(X(-0.5), Y(0.55)); p.lineTo(X(-0.7), Y(0.55)); p.quadraticCurveTo(X(-1), Y(0.55), X(-1), Y(0.2)); p.lineTo(X(-1), Y(-0.6)); p.quadraticCurveTo(X(-1), Y(-1), X(-0.7), Y(-1)); p.closePath(); break;
+    }
+    case 'flower': polar(p, t => 0.7 + 0.3 * Math.abs(Math.cos(3 * t)), w, h, 240); break;
+    case 'gear': { const pts = []; for (let i = 0; i < 8; i++) { const a0 = i * 45; [[-11, 0.8], [-7, 1], [7, 1], [11, 0.8]].forEach(([da, r]) => { const a = rad(a0 + da - 90); pts.push([Math.cos(a) * r, Math.sin(a) * r]); }); } poly(p, pts, w, h); break; }
+    case 'blob': polar(p, t => 0.82 + 0.1 * Math.cos(3 * t + 1) + 0.07 * Math.cos(2 * t) + 0.04 * Math.cos(5 * t), w, h, 200); break;
+    case 'squircle': { const pts = []; for (let i = 0; i < 120; i++) { const t = i / 120 * Math.PI * 2, c = Math.cos(t), s = Math.sin(t); pts.push([Math.sign(c) * Math.pow(Math.abs(c), 0.5), Math.sign(s) * Math.pow(Math.abs(s), 0.5)]); } poly(p, pts, w, h); break; }
+    case 'pill': rr(p, -w / 2, -h / 2, w, h, Math.min(w, h) / 2); break;
+    case 'shield': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(0), Y(-1)); p.bezierCurveTo(X(0.4), Y(-0.8), X(0.7), Y(-0.75), X(0.9), Y(-0.75)); p.lineTo(X(0.9), Y(0.1)); p.bezierCurveTo(X(0.9), Y(0.6), X(0.4), Y(0.85), X(0), Y(1));
+      p.bezierCurveTo(X(-0.4), Y(0.85), X(-0.9), Y(0.6), X(-0.9), Y(0.1)); p.lineTo(X(-0.9), Y(-0.75)); p.bezierCurveTo(X(-0.7), Y(-0.75), X(-0.4), Y(-0.8), X(0), Y(-1)); p.closePath(); break;
+    }
+    case 'arch': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(-0.8), Y(1)); p.lineTo(X(-0.8), Y(-0.2)); p.bezierCurveTo(X(-0.8), Y(-0.75), X(-0.45), Y(-1), X(0), Y(-1)); p.bezierCurveTo(X(0.45), Y(-1), X(0.8), Y(-0.75), X(0.8), Y(-0.2)); p.lineTo(X(0.8), Y(1)); p.closePath(); break;
+    }
+    case 'leaf': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(-0.9), Y(0.9)); p.bezierCurveTo(X(-0.9), Y(-0.3), X(-0.2), Y(-0.95), X(0.95), Y(-0.95)); p.bezierCurveTo(X(0.95), Y(0.2), X(0.3), Y(0.9), X(-0.9), Y(0.9)); p.closePath(); break;
+    }
+    case 'pin': {
+      const X = u => u * w / 2, Y = v => v * h / 2;
+      p.moveTo(X(0), Y(1)); p.bezierCurveTo(X(-0.2), Y(0.7), X(-0.8), Y(0.2), X(-0.8), Y(-0.3)); p.bezierCurveTo(X(-0.8), Y(-0.8), X(-0.45), Y(-1), X(0), Y(-1));
+      p.bezierCurveTo(X(0.45), Y(-1), X(0.8), Y(-0.8), X(0.8), Y(-0.3)); p.bezierCurveTo(X(0.8), Y(0.2), X(0.2), Y(0.7), X(0), Y(1)); p.closePath(); break;
+    }
   }
   return p;
 }
@@ -870,7 +980,7 @@ function renderSlide(ctx, sl, W, H, opt = {}) {
 /* ============ editor canvas ============ */
 const cv = $('#cv'), cx = cv.getContext('2d'), wrap = $('#canvasWrap'), stage = $('#stage');
 const V = { scale: 1, dpr: 1, zoom: 1, panX: 0, panY: 0, guides: { x: false, y: false, lx: [], ly: [] } };
-function applyView() { wrap.style.transform = (V.zoom > 1.001 || V.panX || V.panY) ? `translate(${V.panX}px,${V.panY}px) scale(${V.zoom})` : ''; }
+function applyView() { wrap.style.transform = ''; } /* canvas zoom removed: the canvas always fits the screen */
 let rafR = 0;
 function requestRender() { if (!rafR) rafR = requestAnimationFrame(() => { rafR = 0; render(); }); }
 function fitCanvas() {
@@ -1014,19 +1124,24 @@ function snapMove(o) {
 }
 const ptrs = new Map(); let pin = null;
 const pgeo = () => { const a = [...ptrs.values()]; return { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1, mx: (a[0].x + a[1].x) / 2, my: (a[0].y + a[1].y) / 2 }; };
+/* Two fingers never zoom the canvas. With an object selected they move, resize and turn that object; with nothing selected they do nothing. */
 function startPinch() {
   if (drag) { const d = drag; if (d.mode === 'move' && d.moved && d.obj) { d.obj.x = d.start.x; d.obj.y = d.start.y; } else if (d.moved && ['corner', 'edge', 'rot'].includes(d.mode)) commit(); drag = null; V.guides.x = V.guides.y = false; V.guides.lx = []; V.guides.ly = []; requestRender(); }
-  const g = pgeo(); pin = { d0: g.d, mx0: g.mx, my0: g.my, z0: V.zoom, px0: V.panX, py0: V.panY };
+  const o = selObj(), g = pgeo(), a = [...ptrs.values()];
+  pin = { o: (o && !o.locked && !o.hidden && o.type !== 'group') ? o : null, d0: g.d, mx0: g.mx, my0: g.my, ang0: Math.atan2(a[1].y - a[0].y, a[1].x - a[0].x) * 180 / Math.PI, changed: false };
+  if (pin.o) pin.start = { x: o.x, y: o.y, w: o.w, h: o.h, size: o.size, rot: o.rot };
 }
 function updatePinch() {
-  if (!pin || ptrs.size < 2) return;
-  const g = pgeo(), r = stage.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2, z = clamp(pin.z0 * g.d / pin.d0, 1, 6);
-  const ux = (pin.mx0 - cx - pin.px0) / pin.z0, uy = (pin.my0 - cy - pin.py0) / pin.z0;
-  V.zoom = z; V.panX = g.mx - cx - z * ux; V.panY = g.my - cy - z * uy;
-  const mx = Math.abs((wrap.offsetWidth * z - r.width) / 2) + 60, my = Math.abs((wrap.offsetHeight * z - r.height) / 2) + 60;
-  V.panX = clamp(V.panX, -mx, mx); V.panY = clamp(V.panY, -my, my); applyView();
+  if (!pin || !pin.o || ptrs.size < 2) return;
+  const o = pin.o, st = pin.start, g = pgeo(), a = [...ptrs.values()], f = clamp(g.d / pin.d0, 0.04, 30);
+  o.x = st.x + (g.mx - pin.mx0) / V.scale; o.y = st.y + (g.my - pin.my0) / V.scale;
+  if (o.type === 'text') { o.size = clamp(st.size * f, 8, 900); o.w = Math.max(30, st.w * f); }
+  else { o.w = Math.max(16, st.w * f); o.h = Math.max(16, st.h * f); }
+  let dr = Math.atan2(a[1].y - a[0].y, a[1].x - a[0].x) * 180 / Math.PI - pin.ang0; dr = ((dr + 540) % 360) - 180;
+  if (Math.abs(dr) > 6) { dr -= Math.sign(dr) * 6; let r = st.rot + dr; r = ((r + 180) % 360 + 360) % 360 - 180; o.rot = Math.round(r * 10) / 10; } else o.rot = st.rot;
+  pin.changed = true; liveRefresh(); requestRender();
 }
-function endPinch() { pin = null; if (V.zoom < 1.03) { V.zoom = 1; V.panX = V.panY = 0; } applyView(); fitCanvas(); }
+function endPinch() { const ch = pin && pin.changed; pin = null; V.zoom = 1; V.panX = V.panY = 0; applyView(); if (ch) commit(); requestRender(); }
 let drag = null, lastTap = 0, lastTapId = null;
 S.brush = 60;
 function eraseAt(o, p, first) {
@@ -1417,7 +1532,7 @@ function buildPanel() {
 function shapesPanel() {
   const cells = SHAPES.map(([k, n]) => {
     const c = h('canvas', { width: 64, height: 64 }), g = c.getContext('2d');
-    const o = { kind: k, w: 46, h: k === 'rect' ? 32 : k === 'round' ? 34 : 46, radius: k === 'round' ? 10 : 0 };
+    const aw = SHAPE_W[k] || 1, ah = SHAPE_H[k] || 1, fit = 46 / Math.max(aw, ah), o = { kind: k, w: aw * fit, h: ah * fit, radius: k === 'round' ? 10 : k === 'pill' ? 99 : 0 };
     g.translate(32, 32); const p = shapePath(o);
     if (k === 'ring' || k === 'line') { g.lineWidth = k === 'line' ? 5 : 6; g.strokeStyle = inkColor(); g.lineCap = 'round'; g.stroke(p); } else { g.fillStyle = inkColor(); g.fill(p); }
     return h('button', { type: 'button', class: 'gcell', 'aria-label': n, title: n, onclick: () => addObject(newShape(k), 'Fill') }, c);
@@ -1852,14 +1967,16 @@ async function makeZip(files, onProgress) {
   const enc = new TextEncoder(), parts = [], central = []; let offset = 0;
   const now = new Date(), dt = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1), dd = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
   for (let i = 0; i < files.length; i++) {
-    const f = files[i], data = new Uint8Array(await f.blob.arrayBuffer()), nm = enc.encode(f.name), crc = crc32(data);
+    const f = files[i], raw = new Uint8Array(await f.blob.arrayBuffer()), nm = enc.encode(f.name), crc = crc32(raw);
+    let data = raw, method = 0;
+    if (f.deflate && typeof CompressionStream === 'function') { try { const z = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new CompressionStream('deflate-raw'))).arrayBuffer()); if (z.length < raw.length) { data = z; method = 8; } } catch { /* store it uncompressed */ } }
     const lh = new DataView(new ArrayBuffer(30));
-    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint16(10, dt, true); lh.setUint16(12, dd, true);
-    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, method, true); lh.setUint16(10, dt, true); lh.setUint16(12, dd, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, raw.length, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
     parts.push(lh.buffer, nm, data);
     const ch = new DataView(new ArrayBuffer(46));
-    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, dt, true); ch.setUint16(14, dd, true);
-    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, nm.length, true);
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true); ch.setUint16(12, dt, true); ch.setUint16(14, dd, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, raw.length, true); ch.setUint16(28, nm.length, true);
     ch.setUint32(42, offset, true);
     central.push(ch.buffer, nm);
     offset += 30 + nm.length + data.length;
@@ -2123,7 +2240,7 @@ async function saveProject(silent) {
     const i = idx.findIndex(r => r.id === P.id); if (i >= 0) idx[i] = rec; else idx.unshift(rec); await idb.set('index', idx);
     S.saved = true; syncHeader(); if (!silent) toast('Project saved on this device');
     return true;
-  } catch (e) { toast('Saving here is not available. Use “Download project file” in Projects.'); return false; }
+  } catch (e) { toast('Saving here is not available. Use “Download project (.zip)” in Projects.'); return false; }
 }
 const safeGet = async k => { try { return await idb.get(k); } catch { return null; } };
 const fmtWhen = t => { try { const d = new Date(t); return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); } catch { return ''; } };
@@ -2156,11 +2273,11 @@ function openProjects() {
     if (prev) host.append(h('div', { class: 'lab' }, 'Go back'), projRow('Previous: ' + prev.name, metaOf(prev), 'Return', go('previous')), h('p', { class: 'tinyp' }, 'Whenever you open another project, the one you were on is kept here, so you can always return.'));
     if (draft) host.append(h('div', { class: 'lab' }, 'Autosave'), projRow(draft.name, metaOf(draft), 'Restore', go('draft')));
     host.append(h('div', { class: 'lab' }, 'Saved on this device' + (idx && idx.length ? ` (${idx.length})` : '')));
-    if (idx === null) host.append(h('p', { class: 'empty' }, 'This browser is blocking local storage. Project files still work.'));
+    if (idx === null) host.append(h('p', { class: 'empty' }, 'This browser is blocking local storage. Project .zip files still work.'));
     else if (!idx.length) host.append(h('p', { class: 'empty' }, 'Nothing saved yet. Tap “Save this project”.'));
     else host.append(h('div', { class: 'rowlist' }, idx.map(r => projRow(r.name, r, 'Open', go('proj:' + r.id), async () => { try { await idb.del('proj:' + r.id); await idb.set('index', idx.filter(x => x.id !== r.id)); draw(); } catch { toast('Could not delete'); } }))));
-    host.append(h('div', { class: 'lab' }, 'Files and templates'), h('p', { class: 'tinyp' }, 'A project file works as a template. Design it once, tap Download project file, then open that file any time to start from it.'), h('div', { class: 'row' },
-      h('button', { type: 'button', class: 'btn', html: ic('export', 18) + '<span>Download project file</span>', onclick: async () => { try { await deliver(await makeZip([{ name: 'project.zon.json', blob: new Blob([JSON.stringify(serializeProject())], { type: 'application/json' }) }]), (P.name.replace(/[^\w\-]+/g, '-').replace(/^-+|-+$/g, '') || 'zon-project') + '.zon.zip'); } catch (e) { toast(errMsg(e)); } } }),
+    host.append(h('div', { class: 'lab' }, 'Files and templates'), h('p', { class: 'tinyp' }, 'A project file works as a template. Design it once, tap Download project (.zip), then open that .zip any time to start from it. It is a normal ZIP, so any file manager can save and extract it.'), h('div', { class: 'row' },
+      h('button', { type: 'button', class: 'btn', html: ic('export', 18) + '<span>Download project (.zip)</span>', onclick: async () => { try { const base = (P.name.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'zon-project').slice(0, 40); await deliver(await makeZip([{ name: base + '.json', blob: new Blob([JSON.stringify(serializeProject())], { type: 'application/json' }), deflate: true }]), base + '-project.zip'); } catch (e) { toast(errMsg(e)); } } }),
       h('button', { type: 'button', class: 'btn', html: ic('upload', 18) + '<span>Open project file</span>', onclick: () => $('#fProj').click() })));
   };
   draw();
@@ -2327,3 +2444,4 @@ function init() {
 init();
 })();
 </script>
+</body></html>

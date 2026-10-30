@@ -37,21 +37,21 @@ fs.mkdirSync(path.join(root, 'assets'), { recursive: true });
 // Cut the tile out, take its inner artwork, and use that as the foreground.
 const tile = await sharp(ICON_SOURCE).trim({ threshold: 10 }).png().toBuffer();
 const tm = await sharp(tile).metadata();
-const inset = Math.round(tm.width * 0.04);
+const inset = Math.round(tm.width * 0.05);
 const inner = tm.width - inset * 2;
 const art = await sharp(tile).extract({ left: inset, top: inset, width: inner, height: inner }).png().toBuffer();
 
 // Legacy / full icon: the tile itself, filling the canvas.
-await sharp(tile).resize(S, S, { fit: 'cover' }).png().toFile(out('icon-only.png'));
+await sharp(tile).resize(S, S, { fit: 'cover', kernel: 'lanczos3' }).sharpen({ sigma: 0.9, m1: 1.2, m2: 2 }).png().toFile(out('icon-only.png'));
 
 // Adaptive foreground: artwork with softly feathered edges, so it melts into the background.
-const FG = Math.round(S * 0.70);
+const FG = Math.round(S * 0.74);
 const edgeMask = await sharp(Buffer.from(
   `<svg xmlns="http://www.w3.org/2000/svg" width="${FG}" height="${FG}">`
   + `<defs><filter id="b" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="${FG * 0.04}"/></filter></defs>`
   + `<rect x="${FG * 0.08}" y="${FG * 0.08}" width="${FG * 0.84}" height="${FG * 0.84}" rx="${FG * 0.1}" fill="#fff" filter="url(#b)"/></svg>`
 )).png().toBuffer();
-const fgArt = await sharp(art).resize(FG, FG).ensureAlpha()
+const fgArt = await sharp(art).resize(FG, FG, { kernel: 'lanczos3' }).sharpen({ sigma: 0.9, m1: 1.2, m2: 2 }).ensureAlpha()
   .composite([{ input: edgeMask, blend: 'dest-in' }]).png().toBuffer();
 await sharp({ create: { width: S, height: S, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
   .composite([{ input: fgArt, gravity: 'center' }]).png().toFile(out('icon-foreground.png'));

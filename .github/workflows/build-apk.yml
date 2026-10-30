@@ -78,6 +78,42 @@ jobs:
           sed -i "s/versionCode [0-9][0-9]*/versionCode $((BUILD_NO + 100))/; s/versionName \"[^\"]*\"/versionName \"1.5.$BUILD_NO\"/" "$G"
           grep -nE "applicationId|versionCode|versionName" "$G"
 
+      - name: Let the app open project files shared from other apps
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const f = 'android/app/src/main/AndroidManifest.xml';
+          let x = fs.readFileSync(f, 'utf8');
+          if (!x.includes('zon-open-project')) {
+            const filters = `
+              <!-- zon-open-project -->
+              <intent-filter>
+                  <action android:name="android.intent.action.VIEW" />
+                  <category android:name="android.intent.category.DEFAULT" />
+                  <category android:name="android.intent.category.BROWSABLE" />
+                  <data android:scheme="content" />
+                  <data android:scheme="file" />
+                  <data android:mimeType="application/zip" />
+                  <data android:mimeType="application/x-zip-compressed" />
+              </intent-filter>
+              <intent-filter>
+                  <action android:name="android.intent.action.VIEW" />
+                  <category android:name="android.intent.category.DEFAULT" />
+                  <category android:name="android.intent.category.BROWSABLE" />
+                  <data android:scheme="content" />
+                  <data android:scheme="file" />
+                  <data android:mimeType="*/*" />
+                  <data android:pathPattern=".*\\.zip" />
+              </intent-filter>
+            `;
+            const i = x.indexOf('</activity>');
+            if (i < 0) throw new Error('Could not find the main activity in AndroidManifest.xml');
+            x = x.slice(0, i) + filters + x.slice(i);
+            fs.writeFileSync(f, x);
+          }
+          NODE
+          grep -n "zon-open-project" android/app/src/main/AndroidManifest.xml
+
       - name: Sync the web app into Android
         run: npx cap sync android
 

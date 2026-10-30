@@ -37,7 +37,7 @@ fs.mkdirSync(path.join(root, 'assets'), { recursive: true });
 // Cut the tile out, take its inner artwork, and use that as the foreground.
 const tile = await sharp(ICON_SOURCE).trim({ threshold: 10 }).png().toBuffer();
 const tm = await sharp(tile).metadata();
-const inset = Math.round(tm.width * 0.05);
+const inset = Math.round(tm.width * 0.08);
 const inner = tm.width - inset * 2;
 const art = await sharp(tile).extract({ left: inset, top: inset, width: inner, height: inner }).png().toBuffer();
 
@@ -56,8 +56,20 @@ const fgArt = await sharp(art).resize(FG, FG, { kernel: 'lanczos3' }).sharpen({ 
 await sharp({ create: { width: S, height: S, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } })
   .composite([{ input: fgArt, gravity: 'center' }]).png().toFile(out('icon-foreground.png'));
 
-// Adaptive background: the icon's dark navy.
-await sharp({ create: { width: S, height: S, channels: 4, background: '#0a2048' } }).png().toFile(out('icon-background.png'));
+// Adaptive background: a diagonal gradient between the artwork's own corner colours, so the foreground blends in.
+const corner = async (l, t) => {
+  const patch = await sharp(art).extract({ left: l, top: t, width: 24, height: 24 }).removeAlpha().png().toBuffer();
+  const st = await sharp(patch).stats(); // stats() reads its input, so the cut-out patch has to be a real image first
+  return st.channels.slice(0, 3).map(c => Math.round(c.mean));
+};
+const cTL = await corner(4, 4), cBR = await corner(inner - 28, inner - 28);
+const hex = c => '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+await sharp(Buffer.from(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="${S}" height="${S}"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">`
+  + `<stop offset="0" stop-color="${hex(cTL)}"/><stop offset="1" stop-color="${hex(cBR)}"/></linearGradient></defs>`
+  + `<rect width="100%" height="100%" fill="url(#g)"/></svg>`
+)).png().toFile(out('icon-background.png'));
+console.log('Adaptive icon background:', hex(cTL), '->', hex(cBR));
 
 const splashBg = sharp({
   create: { width: W, height: W, channels: 4, background: '#06152e' }

@@ -1403,7 +1403,7 @@ function syncHeader() {
   $('#hint').textContent = P.slides.length > 1 && SET.hints ? 'Swipe to change slide' : '';
 }
 const TOOLS = [['text', 'Text'], ['image', 'Image'], ['shape', 'Shape'], ['sticker', 'Sticker'], ['backdrop', 'Backdrop'], ['canvas', 'Canvas'], ['layers', 'Layers']];
-const TOOL_ICONS = { text:'text', image:'camera', shape:'shape', sticker:'spark', backdrop:'drop', canvas:'crop', layers:'layers' };
+const TOOL_ICONS = { text:'text', image:'image', shape:'shape', sticker:'sticker', backdrop:'backdrop', canvas:'crop', layers:'layers' };
 function buildToolbar() {
   const tb = $('#toolbar'); tb.textContent = '';
   for (const [id, label] of TOOLS) tb.append(h('button', { class: 'tool', type: 'button', 'data-tool': id, 'aria-label': label, html: ic(TOOL_ICONS[id] || id, 22) + `<span>${label}</span>`, onclick: () => toolTap(id) }));
@@ -2277,6 +2277,21 @@ async function nativeShare(items, title) {
   catch (e) { const m = String((e && e.message) || e); if (/cancel/i.test(m)) { const err = new Error('Sharing was cancelled.'); err.code = 'declined'; throw err; } throw new Error('The share sheet could not open: ' + m); }
   return { status: 'delivered' };
 }
+async function openProjectBlob(f) {
+  flushCommit(); const snap = serializeProject();
+  const head = new Uint8Array(await f.slice(0, 2).arrayBuffer());
+  await loadProject(JSON.parse(head[0] === 0x50 && head[1] === 0x4b ? await unzipFirstJson(f) : await f.text()));
+  await stashPrevious(snap); toast('Opened “' + P.name + '”'); document.querySelectorAll('.mbg').forEach(x => x.remove());
+}
+// a project file was tapped in another app (WhatsApp, Files, Gmail...) and "Open with Zon Studio" was chosen
+async function openIncomingFile(url) {
+  try {
+    for (let i = 0; i < 100 && !document.documentElement.getAttribute('data-ready'); i++) await sleep(100);
+    const C = window.Capacitor, src = C && C.convertFileSrc ? C.convertFileSrc(url) : url;
+    const r = await fetch(src); if (!r.ok) throw new Error('read failed');
+    await openProjectBlob(await r.blob());
+  } catch (err) { toast(err && err.message && !/JSON|read failed/.test(err.message) ? err.message : 'That file could not be read as a Zon Studio project.'); }
+}
 function initNative() {
   if (!NATIVE()) return;
   document.documentElement.setAttribute('data-native', '1');
@@ -2288,9 +2303,30 @@ function initNative() {
       plug('App').exitApp();
     });
   } catch { /* back button stays default */ }
+  try {
+    const app = plug('App');
+    app.addListener('appUrlOpen', e => { if (e && e.url) openIncomingFile(e.url); });
+    app.getLaunchUrl().then(r => { if (r && r.url) openIncomingFile(r.url); }).catch(() => {});
+  } catch { /* opening files from other apps is not available */ }
+}
+async function saveToDevice(blob, filename) {
+  const fs = plug('Filesystem'), dir = 'Zon Studio';
+  try { await fs.requestPermissions(); } catch { /* newer Android needs no permission here */ }
+  const u8 = new Uint8Array(await blob.arrayBuffer()), CH = 3 * 512 * 1024;
+  let name = filename;
+  for (let n = 2; n < 50; n++) { try { await fs.stat({ path: dir + '/' + name, directory: 'DOCUMENTS' }); name = filename.replace(/(\.[^.]+)?$/, ' (' + n + ')$1'); } catch { break; } }
+  const path = dir + '/' + name;
+  for (let q = 0; q < u8.length || q === 0; q += CH) {
+    const data = bufToB64(u8.subarray(q, q + CH));
+    if (q === 0) await fs.writeFile({ path, data, directory: 'DOCUMENTS', recursive: true }); else await fs.appendFile({ path, data, directory: 'DOCUMENTS' });
+  }
+  return { status: 'saved', where: 'Documents/' + path };
 }
 async function deliver(blob, filename) {
-  if (NATIVE()) return nativeShare([{ blob, filename }], filename);
+  if (NATIVE()) {
+    try { const r = await saveToDevice(blob, filename); toast('Saved to ' + r.where); return r; }
+    catch (e) { toast('Could not save to Documents, opening the share sheet instead.'); return nativeShare([{ blob, filename }], filename); }
+  }
   const dl = await getDownloads();
   if (dl) return dl.save({ filename, data: blob });
   const url = URL.createObjectURL(blob), a = h('a', { href: url, download: filename }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
@@ -2393,7 +2429,7 @@ function openExport() {
   };
   const drawDone = () => {
     const r = st.result; let msg = null;
-    const saveBtn = h('button', { type: 'button', class: 'btn primary block', html: ic('save', 18) + `<span>${NATIVE() ? 'Save or share' : 'Save'} ${r.filename}</span>`, onclick: async () => { msg.textContent = ''; try { const s = await deliver(r.blob, r.filename); msg.append(h('div', { class: 'okbox' }, s && s.status === 'delivered' ? 'Sent to your chosen destination.' : 'Saved.')); } catch (e) { msg.append(h('div', { class: 'err' }, errMsg(e))); } } });
+    const saveBtn = h('button', { type: 'button', class: 'btn primary block', html: ic('save', 18) + `<span>Save ${r.filename}</span>`, onclick: async () => { msg.textContent = ''; try { const s = await deliver(r.blob, r.filename); msg.append(h('div', { class: 'okbox' }, s && s.status === 'delivered' ? 'Sent to your chosen destination.' : (s && s.where ? 'Saved to ' + s.where : 'Saved.'))); } catch (e) { msg.append(h('div', { class: 'err' }, errMsg(e))); } } });
     msg = h('div');
     const galleryBtn = NATIVE() && !r.pdf && r.files && r.files.length ? h('button', { type: 'button', class: 'btn primary block', html: ic('save', 18) + '<span>Save to Gallery</span>', onclick: async () => {
       msg.textContent = ''; try { const n = await saveToGallery(r.files); msg.append(h('div', { class: 'okbox' }, `Saved ${n} image${n === 1 ? '' : 's'} to the Zon Studio album in your Gallery.`)); }
@@ -2409,6 +2445,7 @@ function openExport() {
       r.galleryErr ? h('div', { class: 'err' }, 'Could not save to the Gallery: ' + r.galleryErr + ' Use Save or share instead.') : null,
       r.gallery ? null : galleryBtn,
       (r.gallery && r.count > 1) ? null : saveBtn,
+      (NATIVE() && !(r.gallery && r.count > 1)) ? h('button', { type: 'button', class: 'btn block', html: ic('share', 18) + `<span>Share ${r.filename}</span>`, onclick: async () => { msg.textContent = ''; try { await nativeShare([{ blob: r.blob, filename: r.filename }], r.filename); } catch (e) { if (!e || e.code !== 'declined') msg.append(h('div', { class: 'err' }, errMsg(e))); } } }) : null,
       shareAll,
       canShare ? h('button', { type: 'button', class: 'btn block', html: ic('share', 18) + '<span>Share…</span>', onclick: async () => { try { await navigator.share({ files: [new File([r.blob], r.filename, { type: r.blob.type })], title: r.filename }); } catch (e) { if (e && e.name !== 'AbortError') msg.append(h('div', { class: 'err' }, 'Sharing failed: ' + (e.message || 'unknown error'))); } } }) : null,
       msg,

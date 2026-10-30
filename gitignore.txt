@@ -1,0 +1,11 @@
+node_modules/
+android/
+www/
+assets/
+*.keystore
+*.jks
+*.base64
+*.apk
+.env
+.env.*
+!.env.example

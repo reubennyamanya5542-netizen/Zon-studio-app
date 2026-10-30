@@ -1,0 +1,123 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      release:
+        description: Publish a GitHub release with the APK
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+env:
+  APP_ID: com.zonstudio.editor
+  APP_NAME: Zon Studio
+  VERSION_NAME_PREFIX: 1.5
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Put the build number into the app
+        env:
+          BUILD_NO: ${{ github.run_number }}
+        run: |
+          sed -i "s/const APP_VERSION = '[^']*'/const APP_VERSION = '1.5.$BUILD_NO'/" index.html
+          grep -n "const APP_VERSION" index.html
+
+      - name: Prepare web app, offline fonts, icon and splash
+        env:
+          ZON_MIN_FONTS: 40
+        run: node build.mjs
+
+      - name: Create the Android project when needed
+        run: |
+          if [ ! -d android ]; then
+            npx cap add android
+          fi
+
+      - name: Generate Android launcher assets
+        run: npx capacitor-assets generate --android
+
+      - name: Set permanent package ID and version
+        env:
+          BUILD_NO: ${{ github.run_number }}
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const p = JSON.parse(fs.readFileSync('capacitor.config.json', 'utf8'));
+          if (p.appId !== process.env.APP_ID) {
+            throw new Error(`Unexpected app ID: ${p.appId}. Expected ${process.env.APP_ID}.`);
+          }
+          NODE
+
+          G=android/app/build.gradle
+          test -f "$G"
+          sed -i "s/versionCode [0-9][0-9]*/versionCode $((BUILD_NO + 100))/; s/versionName \"[^\"]*\"/versionName \"1.5.$BUILD_NO\"/" "$G"
+          grep -nE "applicationId|versionCode|versionName" "$G"
+
+      - name: Sync the web app into Android
+        run: npx cap sync android
+
+      - name: Restore the original signing key
+        env:
+          DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$DEBUG_KEYSTORE_BASE64" ]; then
+            echo "DEBUG_KEYSTORE_BASE64 is missing. Add the same debug.keystore used by the currently installed app to GitHub Secrets."
+            exit 1
+          fi
+          mkdir -p "$HOME/.android"
+          printf '%s' "$DEBUG_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
+          test -s "$HOME/.android/debug.keystore"
+
+      - name: Build the signed APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Name the APK
+        env:
+          BUILD_NO: ${{ github.run_number }}
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk "zon-studio-v1.5.$BUILD_NO.apk"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zon-studio-apk
+          path: zon-studio-v1.5.${{ github.run_number }}.apk
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        if: github.event_name == 'workflow_dispatch' && inputs.release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_NO: ${{ github.run_number }}
+        run: |
+          TAG="v1.5.$BUILD_NO"
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "Zon Studio $TAG" --notes "Zon Studio build $BUILD_NO"
+          gh release upload "$TAG" "zon-studio-v1.5.$BUILD_NO.apk"

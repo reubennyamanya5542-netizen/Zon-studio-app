@@ -2438,7 +2438,7 @@ async function checkForUpdate(manual) {
         try { await liveUpdate(info); return 'live'; }
         catch (e) {
           UPDATING = false;
-          if (!/not available|apk required/.test(String((e && e.message) || e))) { if (manual) toast('The update could not be downloaded. Try again in a moment.'); return 'error'; }
+          if (!/not available|apk required/.test(String((e && e.message) || e))) { if (manual) toast('Live update failed: ' + String((e && e.message) || e).slice(0, 140)); await sleep(manual ? 3500 : 0); }
           // this APK cannot live-update: offer the full APK below
         }
       }

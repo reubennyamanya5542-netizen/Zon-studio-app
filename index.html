@@ -2410,6 +2410,7 @@ function showUpdate(info) {
   host.append(
     h('div', { class: 'okbox' }, h('b', null, 'New update available!'), h('div', null, `Version ${String(info.version).replace(/^v/i, '')} is ready. You have ${APP_VERSION}.`)),
     info.notes ? h('p', null, String(info.notes).slice(0, 400)) : null,
+    info.liveErr ? h('div', { class: 'err' }, 'Live update failed: ' + info.liveErr) : null,
     h('p', { class: 'tinyp' }, 'Tap Update now. Your phone downloads the new version, then tap the file to install it over this app. Your projects stay on your phone.'),
     h('button', { type: 'button', class: 'btn primary block', html: ic('upload', 18) + '<span>Update now</span>', onclick: () => { m.close(); try { location.href = info.apk; } catch { toast('Could not open the download link.'); } } }),
     h('button', { type: 'button', class: 'btn block', onclick: () => { try { localStorage.setItem('zon-skip-update', String(info.version)); } catch { /* ignore */ } m.close(); } }, 'Not now'));
@@ -2438,7 +2439,7 @@ async function checkForUpdate(manual) {
         try { await liveUpdate(info); return 'live'; }
         catch (e) {
           UPDATING = false;
-          if (!/not available|apk required/.test(String((e && e.message) || e))) { if (manual) toast('Live update failed: ' + String((e && e.message) || e).slice(0, 140)); await sleep(manual ? 3500 : 0); }
+          if (!/not available|apk required/.test(String((e && e.message) || e))) { info.liveErr = String((e && (e.message || e.code)) || e).slice(0, 300); }
           // this APK cannot live-update: offer the full APK below
         }
       }

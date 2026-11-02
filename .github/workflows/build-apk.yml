@@ -61,6 +61,27 @@ jobs:
             npx cap add android
           fi
 
+      - name: Pin an Android library to the version this build supports
+        run: |
+          # a plugin pulls in androidx.work 2.10.x, which needs compileSdk 35; this project builds against 34
+          G=android/build.gradle
+          test -f "$G"
+          if ! grep -q "zon-pin-work" "$G"; then
+            cat >> "$G" <<'GRADLE'
+
+          // zon-pin-work
+          allprojects {
+              configurations.all {
+                  resolutionStrategy {
+                      force 'androidx.work:work-runtime:2.9.1'
+                      force 'androidx.work:work-runtime-ktx:2.9.1'
+                  }
+              }
+          }
+          GRADLE
+          fi
+          tail -14 "$G"
+
       - name: Generate Android launcher assets
         run: npx capacitor-assets generate --android
 

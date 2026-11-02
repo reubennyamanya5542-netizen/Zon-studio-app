@@ -168,6 +168,34 @@ jobs:
           ls -l "$HOME/.android/debug.keystore"
           keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android 2>&1 | grep -E "Alias name|Creation date|SHA256|Keystore type|password|Invalid" || echo "Could not read the keystore with password 'android'"
 
+      - name: Force signing with the restored key
+        run: |
+          G=android/app/build.gradle
+          test -f "$G"
+          if ! grep -q "zon-fixed-signing" "$G"; then
+            cat >> "$G" <<'GRADLE'
+
+          // zon-fixed-signing: always sign with the restored key, never a freshly generated one
+          android {
+              signingConfigs {
+                  zonKey {
+                      storeFile file(System.getProperty('user.home') + '/.android/debug.keystore')
+                      storePassword 'android'
+                      keyAlias 'androiddebugkey'
+                      keyPassword 'android'
+                      storeType 'pkcs12'
+                  }
+              }
+              buildTypes {
+                  debug {
+                      signingConfig signingConfigs.zonKey
+                  }
+              }
+          }
+          GRADLE
+          fi
+          tail -20 "$G"
+
       - name: Build the signed APK
         working-directory: android
         run: |
@@ -181,6 +209,15 @@ jobs:
           cp android/app/build/outputs/apk/debug/app-debug.apk "zon-studio-v1.5.$BUILD_NO.apk"
           echo "--- key that actually signed this APK ---"
           keytool -printcert -jarfile "zon-studio-v1.5.$BUILD_NO.apk" | grep -E "Owner|Valid from|SHA256"
+          APK_FP=$(keytool -printcert -jarfile "zon-studio-v1.5.$BUILD_NO.apk" | grep SHA256 | head -1 | sed 's/.*SHA256: *//')
+          KEY_FP=$(keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android | grep SHA256 | head -1 | sed 's/.*SHA256: *//')
+          echo "APK key:      $APK_FP"
+          echo "Restored key: $KEY_FP"
+          if [ "$APK_FP" != "$KEY_FP" ]; then
+            echo "ERROR: the APK was NOT signed with the restored key, so phones would refuse to update it."
+            exit 1
+          fi
+          echo "OK: the APK is signed with your permanent key."
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4

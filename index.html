@@ -2383,7 +2383,7 @@ async function openIncomingFile(url) {
 /* ============ app updates ============ */
 // The build workflow publishes update.json next to the newest APK (GitHub release "latest").
 // Change this one line if you ever host the file somewhere else.
-const UPDATE_URL = 'https://github.com/reubennyamanya5542-netizen/Zon-studio-app/releases/download/latest/update.json';
+const UPDATE_URL = 'https://github.com/reubennyamanya5542-netizen/Zon-studio-app/releases/download/app-update/update.json';
 const verCmp = (a, b) => {
   const x = String(a).replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0), y = String(b).replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
   for (let i = 0; i < Math.max(x.length, y.length); i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d > 0 ? 1 : -1; }

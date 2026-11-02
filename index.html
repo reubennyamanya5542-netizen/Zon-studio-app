@@ -330,7 +330,8 @@ const catOf = n => Object.keys(FONT_CATS).find(c => FONT_CATS[c].includes(n)) ||
 const SYS_FONTS = { Sans: 'system-ui, Roboto, sans-serif', Serif: 'Georgia, "Times New Roman", serif', Mono: 'ui-monospace, "Courier New", monospace' };
 const SWATCHES = ['#ffffff', '#000000', '#ff4d4f', '#ff9f1c', '#ffd60a', '#2ec27e', '#1ec8c8', '#3b82f6', '#8b5cf6', '#ff5fa2', '#d4af37', '#8a8f98'];
 const GRADS = [['#0f172a', '#334155', 160], ['#1e3a8a', '#7c3aed', 135], ['#111827', '#b91c1c', 160], ['#0f766e', '#22d3ee', 120], ['#f59e0b', '#ef4444', 135], ['#ec4899', '#8b5cf6', 135], ['#fdf2f8', '#fbcfe8', 160], ['#000000', '#3f3f46', 180]];
-const FADES = [['#000000', '#000000', 180, 0, 0.85, 'Clear to dark, top to bottom'], ['#000000', '#000000', 0, 0, 0.85, 'Clear to dark, bottom to top'], ['#ffffff', '#ffffff', 180, 0, 0.9, 'Clear to white'], ['#3b82f6', '#3b82f6', 90, 1, 0, 'Colour fading out']];
+const FADES = [['#000000', '#000000', 180, 0, 0.85, 'Clear to dark, top to bottom'], ['#000000', '#000000', 0, 0, 0.85, 'Clear to dark, bottom to top'], ['#ffffff', '#ffffff', 180, 0, 0.9, 'Clear to white'], ['#3b82f6', '#3b82f6', 90, 1, 0, 'Colour fading out'],
+  ['#ffffff', '#ffffff', 0, 0, 0.9, 'Clear to white, bottom to top'], ['#000000', '#000000', 90, 0, 0.85, 'Clear to dark, left to right'], ['#000000', '#000000', 270, 0, 0.85, 'Clear to dark, right to left'], ['#3b82f6', '#3b82f6', 180, 0, 0.9, 'Clear to blue'], ['#ef4444', '#ef4444', 180, 0, 0.9, 'Clear to red'], ['#ffd60a', '#ffd60a', 180, 0, 0.9, 'Clear to yellow'], ['#ec4899', '#8b5cf6', 135, 0.15, 0.95, 'Soft pink to purple']];
 const CHECKER = 'repeating-conic-gradient(#c3c7cf 0 25%, #eef0f4 0 50%)';
 const pct = v => Math.round(v * 100) + '%';
 const SIZES = [
@@ -432,10 +433,11 @@ const STICKERS = [
 ];
 const SHAPES = [['rect', 'Rectangle'], ['round', 'Rounded'], ['circle', 'Circle'], ['ring', 'Ring'], ['triangle', 'Triangle'], ['diamond', 'Diamond'], ['hexagon', 'Hexagon'], ['star', 'Star'], ['heart', 'Heart'], ['arrow', 'Arrow'], ['plus', 'Cross'], ['line', 'Line'],
   ['pentagon', 'Pentagon'], ['octagon', 'Octagon'], ['parallelogram', 'Slant'], ['trapezoid', 'Trapezoid'], ['rtriangle', 'Right triangle'], ['star4', 'Star 4'], ['star6', 'Star 6'], ['burst', 'Burst'], ['badge', 'Seal'], ['chevron', 'Chevron'], ['arrow2', 'Two-way arrow'], ['lightning', 'Lightning'], ['cloud', 'Cloud'], ['moon', 'Moon'], ['semicircle', 'Half circle'], ['quarter', 'Quarter'], ['drop', 'Drop'], ['bubble', 'Speech'], ['flower', 'Flower'], ['gear', 'Gear'], ['blob', 'Blob'], ['squircle', 'Squircle'], ['pill', 'Pill'], ['frame', 'Frame'], ['shield', 'Shield'], ['ribbon', 'Banner'], ['arch', 'Arch'], ['tag', 'Label'], ['house', 'House'], ['leaf', 'Leaf'], ['pin', 'Pin'],
-  ['arrowL', 'Arrow left'], ['arrowU', 'Arrow up'], ['arrowD', 'Arrow down'], ['ticket', 'Ticket'], ['kite', 'Kite'], ['wave', 'Wave'], ['cross2', 'Rounded cross'], ['scallop', 'Scallop'], ['star8', 'Star 8']];
-const SHAPE_SVG = { ticket: 'M0 3h24v6.500a2.500 2.500 0 0 0 0 5V21H0v-6.500a2.500 2.500 0 0 0 0-5z', kite: 'M12 0l10.500 9L12 24 1.500 9z', wave: 'M0 11C4 5 8 5 12 11s8 6 12 0V24H0z', cross2: 'M8 0h8v8h8v8h-8v8H8v-8H0V8h8z', scallop: 'M12 1.2A4.2 4.2 0 0 1 17.4 2.65A4.2 4.2 0 0 1 21.35 6.6A4.2 4.2 0 0 1 22.8 12A4.2 4.2 0 0 1 21.35 17.4A4.2 4.2 0 0 1 17.4 21.35A4.2 4.2 0 0 1 12 22.8A4.2 4.2 0 0 1 6.6 21.35A4.2 4.2 0 0 1 2.65 17.4A4.2 4.2 0 0 1 1.2 12A4.2 4.2 0 0 1 2.65 6.6A4.2 4.2 0 0 1 6.6 2.65A4.2 4.2 0 0 1 12 1.2z', star8: 'M12 0L14.76 5.35L20.49 3.51L18.65 9.24L24 12L18.65 14.76L20.49 20.49L14.76 18.65L12 24L9.24 18.65L3.51 20.49L5.35 14.76L0 12L5.35 9.24L3.51 3.51L9.24 5.35z' };
-const SHAPE_W = { arrow: 1.3, arrow2: 1.4, chevron: 1.2, parallelogram: 1.2, trapezoid: 1.2, ribbon: 1.3, tag: 1.3, pill: 1.3, cloud: 1.2, semicircle: 1.2, bubble: 1.1, ticket: 1.3 };
-const SHAPE_H = { rect: 0.7, round: 0.7, pill: 0.45, parallelogram: 0.6, trapezoid: 0.65, ribbon: 0.55, tag: 0.6, semicircle: 0.5, cloud: 0.7, bubble: 0.8, chevron: 0.8, arrow2: 0.8, ticket: 0.75, wave: 0.8 };
+  ['arrowL', 'Arrow left'], ['arrowU', 'Arrow up'], ['arrowD', 'Arrow down'], ['ticket', 'Ticket'], ['kite', 'Kite'], ['wave', 'Wave'], ['cross2', 'Rounded cross'], ['scallop', 'Scallop'], ['star8', 'Star 8'],
+  ['bookmark', 'Bookmark'], ['crown', 'Crown'], ['bowtie', 'Bow tie'], ['hourglass', 'Hourglass'], ['sparkle', 'Sparkle'], ['hexv', 'Tall hexagon'], ['chev2', 'Double chevron'], ['pie', 'Pie slice']];
+const SHAPE_SVG = { bookmark: 'M4 0h16v24l-8-6-8 6z', crown: 'M1 20L3 6l6 6 3-8 3 8 6-6 2 14z', bowtie: 'M0 3l12 7 12-7v18l-12-7-12 7z', hourglass: 'M3 0h18v3l-6 9 6 9v3H3v-3l6-9-6-9z', sparkle: 'M12 0c1 8 4 11 12 12-8 1-11 4-12 12-1-8-4-11-12-12 8-1 11-4 12-12z', hexv: 'M12 0l10 6v12l-10 6L2 18V6z', chev2: 'M1 2l10 10L1 22v-6l4-4-4-4zM12 2l10 10-10 10v-6l4-4-4-4z', pie: 'M12 12V0a12 12 0 1 1-12 12z', ticket: 'M0 3h24v6.500a2.500 2.500 0 0 0 0 5V21H0v-6.500a2.500 2.500 0 0 0 0-5z', kite: 'M12 0l10.500 9L12 24 1.500 9z', wave: 'M0 11C4 5 8 5 12 11s8 6 12 0V24H0z', cross2: 'M8 0h8v8h8v8h-8v8H8v-8H0V8h8z', scallop: 'M12 1.2A4.2 4.2 0 0 1 17.4 2.65A4.2 4.2 0 0 1 21.35 6.6A4.2 4.2 0 0 1 22.8 12A4.2 4.2 0 0 1 21.35 17.4A4.2 4.2 0 0 1 17.4 21.35A4.2 4.2 0 0 1 12 22.8A4.2 4.2 0 0 1 6.6 21.35A4.2 4.2 0 0 1 2.65 17.4A4.2 4.2 0 0 1 1.2 12A4.2 4.2 0 0 1 2.65 6.6A4.2 4.2 0 0 1 6.6 2.65A4.2 4.2 0 0 1 12 1.2z', star8: 'M12 0L14.76 5.35L20.49 3.51L18.65 9.24L24 12L18.65 14.76L20.49 20.49L14.76 18.65L12 24L9.24 18.65L3.51 20.49L5.35 14.76L0 12L5.35 9.24L3.51 3.51L9.24 5.35z' };
+const SHAPE_W = { crown: 1.2, bowtie: 1.3, hourglass: 0.8, chev2: 1.1, arrow: 1.3, arrow2: 1.4, chevron: 1.2, parallelogram: 1.2, trapezoid: 1.2, ribbon: 1.3, tag: 1.3, pill: 1.3, cloud: 1.2, semicircle: 1.2, bubble: 1.1, ticket: 1.3 };
+const SHAPE_H = { crown: 0.85, bowtie: 0.7, hourglass: 1.1, hexv: 1.15, rect: 0.7, round: 0.7, pill: 0.45, parallelogram: 0.6, trapezoid: 0.65, ribbon: 0.55, tag: 0.6, semicircle: 0.5, cloud: 0.7, bubble: 0.8, chevron: 0.8, arrow2: 0.8, ticket: 0.75, wave: 0.8 };
 const SHAPE_NAME = Object.fromEntries(SHAPES);
 
 /* ============ state ============ */
@@ -770,7 +772,7 @@ function shapePath(o) {
     case 'arrowL': poly(p, [[1, -0.3], [-0.1, -0.3], [-0.1, -0.85], [-1, 0], [-0.1, 0.85], [-0.1, 0.3], [1, 0.3]], w, h); break;
     case 'arrowU': poly(p, [[-0.3, 1], [-0.3, -0.1], [-0.85, -0.1], [0, -1], [0.85, -0.1], [0.3, -0.1], [0.3, 1]], w, h); break;
     case 'arrowD': poly(p, [[-0.3, -1], [-0.3, 0.1], [-0.85, 0.1], [0, 1], [0.85, 0.1], [0.3, 0.1], [0.3, -1]], w, h); break;
-    default: if (SHAPE_SVG[o.kind]) p.addPath(new Path2D(SHAPE_SVG[o.kind]), new DOMMatrix([w / 24, 0, 0, h / 24, -w / 2, -h / 2]));
+    default: if (SHAPE_SVG[o.kind]) p.addPath(new Path2D(SHAPE_SVG[o.kind]), new DOMMatrix([w / 24, 0, 0, h / 24, -w / 2, -h / 2])); break;
     case 'pentagon': ngon(p, 5, w, h); break;
     case 'octagon': ngon(p, 8, w, h, -22.5); break;
     case 'parallelogram': poly(p, [[-0.6, -1], [1, -1], [0.6, 1], [-1, 1]], w, h); break;
@@ -1670,6 +1672,9 @@ function gradEditor(g, arm) {
   build();
   return wrap;
 }
+function fadeRow(g, arm) {
+  return h('div', { class: 'fld' }, h('label', null, 'See-through presets'), h('div', { class: 'sw' }, FADES.map(([a, b, ang, o1, o2, nm]) => h('button', { type: 'button', class: 'swc', 'aria-label': nm, title: nm, style: { backgroundImage: `linear-gradient(${ang}deg,${rgba(a, o1)},${rgba(b, o2)}), ${CHECKER}`, backgroundSize: 'auto, 10px 10px', borderRadius: '8px' }, onclick: () => { g.stops = null; g.gtype = 'linear'; g.c1 = a; g.c2 = b; g.angle = ang; g.a1 = o1; g.a2 = o2; if (arm) arm(); commit(); render(); refreshThumbs(); buildPanel(); } }))));
+}
 function colorField(label, get, set) {
   const inp = h('input', { type: 'color', value: get(), 'aria-label': label + ' custom colour' });
   const sws = SWATCHES.map(c => h('button', { type: 'button', class: 'swc', style: { background: c }, 'aria-label': c, onclick: () => { set(c); inp.value = c; commit(); render(); refreshThumbs(); markSw(); } }));
@@ -2053,7 +2058,7 @@ const BODIES = {
     Tilt: tiltBody,
     Stroke: o => [toggle('Outline', o.stroke.on, v => { o.stroke.on = v; commit(); render(); refreshThumbs(); }), slider('Width', 1, 40, 1, () => o.stroke.w, v => { o.stroke.w = v; o.stroke.on = true; }), colorField('Outline colour', () => o.stroke.color, v => { o.stroke.color = v; o.stroke.on = true; })],
     Shadow: o => shadowBody(o),
-    Gradient: o => [toggle('Gradient fill', o.grad.on, v => { o.grad.on = v; commit(); render(); refreshThumbs(); }), gradEditor(o.grad, () => { o.grad.on = true; })],
+    Gradient: o => [toggle('Gradient fill', o.grad.on, v => { o.grad.on = v; commit(); render(); refreshThumbs(); }), fadeRow(o.grad, () => { o.grad.on = true; }), gradEditor(o.grad, () => { o.grad.on = true; })],
     '3D': o => [toggle('3D extrude', o.ext.on, v => { o.ext.on = v; commit(); render(); refreshThumbs(); }), h('div', { class: 'row' }, slider('Depth', 1, 80, 1, () => o.ext.depth, v => { o.ext.depth = v; o.ext.on = true; }), slider('Direction', 0, 360, 1, () => o.ext.angle, v => { o.ext.angle = v; o.ext.on = true; }, v => Math.round(v) + '°')), colorField('Side colour', () => o.ext.color, v => { o.ext.color = v; o.ext.on = true; })],
     Spacing: o => [slider('Letter spacing', -10, 60, 0.5, () => o.ls, v => { o.ls = v; }, v => Math.round(v * 10) / 10), slider('Line height', 0.7, 2.5, 0.05, () => o.lh, v => { o.lh = v; }, v => Math.round(v * 100) / 100)],
     Arrange: arrangeBody
@@ -2098,7 +2103,7 @@ const BODIES = {
     Tilt: tiltBody, Shadow: shadowBody, Arrange: arrangeBody
   },
   sticker: { Color: o => [o.grad && o.grad.on ? h('p', { class: 'empty' }, 'Gradient is on, so this colour is hidden. Turn it off in the Gradient tab.') : null, colorField('Sticker colour', () => o.color, v => { o.color = v; })],
-    Gradient: o => { const g = o.grad = o.grad || { on: false, c1: '#ffd36e', c2: '#ff5f6d', angle: 90 }; return [toggle('Gradient fill', g.on, v => { g.on = v; commit(); render(); refreshThumbs(); buildPanel(); }), gradEditor(g, () => { g.on = true; })]; },
+    Gradient: o => { const g = o.grad = o.grad || { on: false, c1: '#ffd36e', c2: '#ff5f6d', angle: 90 }; return [toggle('Gradient fill', g.on, v => { g.on = v; commit(); render(); refreshThumbs(); buildPanel(); }), fadeRow(g, () => { g.on = true; }), gradEditor(g, () => { g.on = true; })]; },
     Image: imageFillBody,
     Tilt: tiltBody, Shadow: shadowBody, Arrange: arrangeBody }
 };

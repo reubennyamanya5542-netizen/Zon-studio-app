@@ -202,6 +202,7 @@ input.text,select.text{width:100%;height:38px;background:var(--panel-2);border:1
 img.lg{display:block;object-fit:contain}img.lg.anim{animation:lgIn .8s cubic-bezier(.2,.8,.2,1) both}@keyframes lgIn{from{opacity:0;transform:scale(.82)}to{opacity:1;transform:none}}
 .legal{text-align:center;margin:18px 0 4px;font:11px/1.5 Georgia,'Times New Roman',serif;color:var(--muted,#8a8f9c)}.legal button{background:none;border:0;padding:6px 4px;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .ctx{position:fixed;z-index:60;width:min(92vw,330px);max-height:64vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:8px 10px 10px;box-shadow:0 2px 10px rgba(0,0,0,.35)}.ctxh{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 0}.ctx .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.ctx .gl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:8px 4px 4px}.cbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:48px;padding:8px 4px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);color:inherit;font-size:11px;text-align:center}.cbtn.danger{color:#ff6b6b}.cbtn.tab{font-size:12px}
+.ie{position:fixed;inset:0;z-index:200;background:#0a0b0e;display:flex;flex-direction:column;color:var(--ink)}.ie-top{display:flex;align-items:center;justify-content:center;gap:8px;padding:calc(10px + env(safe-area-inset-top,0px)) 12px 8px;font-size:13px;color:var(--mute)}.ie-stage{position:relative;flex:1;min-height:0;overflow:hidden;touch-action:none}.ie-cv{position:absolute}.ie-box{position:absolute;border:2px solid #fff;box-shadow:0 0 0 9999px rgba(0,0,0,.55);touch-action:none;background-image:linear-gradient(#ffffff55 1px,transparent 1px),linear-gradient(90deg,#ffffff55 1px,transparent 1px);background-size:100% 33.333%,33.333% 100%}.ie-h{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;display:flex;align-items:center;justify-content:center;touch-action:none}.ie-h:after{content:'';width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px rgba(0,0,0,.4)}.ie-pre{display:flex;gap:8px;overflow-x:auto;padding:8px 12px;background:var(--panel)}.ie-pre button{flex:0 0 auto;padding:7px 13px;border-radius:999px;background:var(--panel-2);border:1px solid var(--line);color:inherit;font-size:12px}.ie-pre button.on{background:var(--accent);color:var(--accent-ink);border-color:transparent}.ie-act{display:flex;justify-content:space-around;gap:4px;background:var(--panel);padding:4px 6px calc(8px + env(safe-area-inset-bottom,0px))}.ie-act button{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:46px;padding:6px 6px;border-radius:10px;background:none;border:0;color:inherit;font-size:11px}.ie-act .ok{color:var(--accent)}.ie-act .ib{width:auto;height:auto}
 </style>
 
 <div id="app">
@@ -299,7 +300,8 @@ const ICONS = {
   eye: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   eyeoff: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><path d="M3 3l18 18"/>',
   close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
-  flip: '<path d="M12 3v18"/><path d="M8 7L3 12l5 5z"/><path d="M16 7l5 5-5 5z"/>',
+  flip: '<path d="M12 3v18"/><path d="M8 7L3 17h5z"/><path d="M16 7l5 10h-5z"/>',
+  reset: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
   front: '<rect x="3" y="3" width="11" height="11" rx="1"/><rect x="10" y="10" width="11" height="11" rx="1" fill="currentColor"/>',
   back: '<rect x="3" y="3" width="11" height="11" rx="1" fill="currentColor"/><rect x="10" y="10" width="11" height="11" rx="1"/>',
   paste: '<path d="M9 4h6v3H9z"/><path d="M7 5H5v16h14V5h-2"/><path d="M9 12h6M9 16h6"/>',
@@ -535,6 +537,92 @@ function registerAsset(id, url) {
   a.img.src = url;
   ASSETS.set(id, a);
   return a;
+}
+function editImage(source, opt = {}) {
+  return new Promise(async resolve => {
+    let img = source, src0 = '';
+    if (!(source instanceof HTMLImageElement)) {
+      const u = URL.createObjectURL(source); img = new Image(); img.src = u;
+      try { await img.decode(); } catch { URL.revokeObjectURL(u); toast('That file could not be read as an image.'); return resolve(null); }
+      src0 = u;
+    }
+    const mk = (w, hh) => { const c = document.createElement('canvas'); c.width = w; c.height = hh; return c; };
+    const k = Math.min(1, 2400 / Math.max(img.naturalWidth, img.naturalHeight));
+    let src = mk(Math.max(1, Math.round(img.naturalWidth * k)), Math.max(1, Math.round(img.naturalHeight * k)));
+    src.getContext('2d').drawImage(img, 0, 0, src.width, src.height);
+    if (src0) URL.revokeObjectURL(src0);
+    const keepAlpha = source.type ? /png|webp|gif|svg/.test(source.type) : false;
+    let ratio = opt.ratio || null, R = { x: 0, y: 0, w: src.width, h: src.height }, sc = 1, ox = 0, oy = 0, drag = null;
+    const view = h('canvas', { class: 'ie-cv' }), box = h('div', { class: 'ie-box' }), info = h('span', null, '');
+    box.dataset.h = 'm';
+    const hs = ['tl', 't', 'tr', 'l', 'r', 'bl', 'b', 'br'].map(n => { const e = h('div', { class: 'ie-h' }); e.dataset.h = n; return e; });
+    const stage = h('div', { class: 'ie-stage' }, view, box, ...hs);
+    const fitRatio = () => {
+      if (!ratio) return;
+      const cx = R.x + R.w / 2, cy = R.y + R.h / 2; let w = Math.min(src.width, src.height * ratio), hh = w / ratio;
+      R = { w, h: hh, x: Math.max(0, Math.min(src.width - w, cx - w / 2)), y: Math.max(0, Math.min(src.height - hh, cy - hh / 2)) };
+    };
+    const layout = () => {
+      const sw = stage.clientWidth, sh = stage.clientHeight; if (!sw || !sh) return;
+      sc = Math.min((sw - 24) / src.width, (sh - 24) / src.height); const vw = src.width * sc, vh = src.height * sc;
+      ox = (sw - vw) / 2; oy = (sh - vh) / 2;
+      view.width = Math.round(vw); view.height = Math.round(vh); view.style.cssText = `left:${ox}px;top:${oy}px;width:${vw}px;height:${vh}px`;
+      view.getContext('2d').drawImage(src, 0, 0, view.width, view.height);
+      const l = ox + R.x * sc, t = oy + R.y * sc, w = R.w * sc, hh = R.h * sc;
+      box.style.cssText = `left:${l - 2}px;top:${t - 2}px;width:${w}px;height:${hh}px`;
+      const px = { l, r: l + w, t, b: t + hh, cx: l + w / 2, cy: t + hh / 2 };
+      const pos = { tl: [px.l, px.t], t: [px.cx, px.t], tr: [px.r, px.t], l: [px.l, px.cy], r: [px.r, px.cy], bl: [px.l, px.b], b: [px.cx, px.b], br: [px.r, px.b] };
+      hs.forEach(e => { const p = pos[e.dataset.h]; e.style.left = p[0] + 'px'; e.style.top = p[1] + 'px'; });
+      info.textContent = `${Math.round(R.w)} × ${Math.round(R.h)}`;
+    };
+    const down = e => {
+      const n = e.target.dataset && e.target.dataset.h; if (!n) return; e.preventDefault();
+      drag = { n, x: e.clientX, y: e.clientY, R: { ...R } }; try { stage.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    };
+    const move = e => {
+      if (!drag) return; const dx = (e.clientX - drag.x) / sc, dy = (e.clientY - drag.y) / sc, n = drag.n, R0 = drag.R, W = src.width, H = src.height, minS = 32;
+      if (n === 'm') { R = { ...R0, x: Math.max(0, Math.min(W - R0.w, R0.x + dx)), y: Math.max(0, Math.min(H - R0.h, R0.y + dy)) }; return layout(); }
+      let x1 = R0.x, y1 = R0.y, x2 = R0.x + R0.w, y2 = R0.y + R0.h; const Lf = n.includes('l'), Rt = n.includes('r'), Tp = n.includes('t'), Bt = n.includes('b');
+      if (Lf) x1 = Math.max(0, Math.min(x2 - minS, x1 + dx)); if (Rt) x2 = Math.min(W, Math.max(x1 + minS, x2 + dx));
+      if (Tp) y1 = Math.max(0, Math.min(y2 - minS, y1 + dy)); if (Bt) y2 = Math.min(H, Math.max(y1 + minS, y2 + dy));
+      if (ratio) {
+        let w2 = x2 - x1, h2 = y2 - y1;
+        if (n.length === 2) { h2 = w2 / ratio; if (Tp) y1 = y2 - h2; else y2 = y1 + h2; }
+        else if (Lf || Rt) { h2 = w2 / ratio; const cy = R0.y + R0.h / 2; y1 = cy - h2 / 2; y2 = cy + h2 / 2; }
+        else { w2 = h2 * ratio; const cx = R0.x + R0.w / 2; x1 = cx - w2 / 2; x2 = cx + w2 / 2; }
+        if (x1 < -0.5 || y1 < -0.5 || x2 > W + 0.5 || y2 > H + 0.5 || x2 - x1 < minS || y2 - y1 < minS) return;
+      }
+      R = { x: x1, y: y1, w: x2 - x1, h: y2 - y1 }; layout();
+    };
+    const up = () => { drag = null; };
+    stage.addEventListener('pointerdown', down); stage.addEventListener('pointermove', move); stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', up);
+    const setRatio = r => { ratio = r; if (r) fitRatio(); markPre(); layout(); };
+    const PRE = [['Slide', P.w / P.h], ['Free', null], ['1:1', 1], ['4:5', 4 / 5], ['16:9', 16 / 9], ['9:16', 9 / 16], ['4:3', 4 / 3], ['3:4', 3 / 4], ['3:2', 3 / 2], ['2:3', 2 / 3]];
+    const preBtns = PRE.map(([n, r]) => h('button', { type: 'button', onclick: () => setRatio(r) }, n));
+    const markPre = () => preBtns.forEach((b, i) => b.classList.toggle('on', ratio ? Math.abs((PRE[i][1] || 0) - ratio) < 0.001 : PRE[i][1] === null));
+    const redraw = () => { R = { x: 0, y: 0, w: src.width, h: src.height }; if (ratio) fitRatio(); layout(); };
+    const rotate = dir => { const c = mk(src.height, src.width), g = c.getContext('2d'); g.translate(c.width / 2, c.height / 2); g.rotate(dir * Math.PI / 2); g.drawImage(src, -src.width / 2, -src.height / 2); src = c; redraw(); };
+    const flip = () => { const c = mk(src.width, src.height), g = c.getContext('2d'); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(src, 0, 0); R = { ...R, x: src.width - R.x - R.w }; src = c; layout(); };
+    const done = v => { removeEventListener('resize', layout); root.remove(); resolve(v); };
+    const apply = () => {
+      const out = mk(Math.round(R.w), Math.round(R.h)); out.getContext('2d').drawImage(src, R.x, R.y, R.w, R.h, 0, 0, out.width, out.height);
+      out.toBlob(b => { if (!b) { toast('Could not save the edited image.'); return; } done(new File([b], keepAlpha ? 'backdrop.png' : 'backdrop.jpg', { type: b.type })); }, keepAlpha ? 'image/png' : 'image/jpeg', 0.92);
+    };
+    const A = (icon, label, fn, cls = '', style = '') => h('button', { type: 'button', class: cls, onclick: fn, html: `<span style="display:flex;${style}">${ic(icon, 22)}</span><span>${label}</span>` });
+    const lockBtn = A('unlock', 'Lock ratio', () => { ratio = ratio ? null : R.w / R.h; markPre(); lockBtn.querySelector('span').innerHTML = ic(ratio ? 'lock' : 'unlock', 22); }, '');
+    const root = h('div', { class: 'ie', role: 'dialog', 'aria-label': opt.title || 'Edit image' },
+      h('div', { class: 'ie-top' }, h('b', null, opt.title || 'Edit image'), info), stage, h('div', { class: 'ie-pre' }, ...preBtns),
+      h('div', { class: 'ie-act' }, A('rotate', 'Left', () => rotate(-1), '', 'transform:scaleX(-1)'), A('rotate', 'Right', () => rotate(1)), A('flip', 'Flip', flip), A('reset', 'Reset', () => { ratio = opt.ratio || null; redraw(); markPre(); }), lockBtn,
+        h('button', { type: 'button', class: 'ib', 'aria-label': 'Close', onclick: () => done(null), html: `<span style="display:flex">${ic('close', 22)}</span><span>Cancel</span>` }), A('check', 'Apply', apply, 'ok')));
+    $('#modals').append(root); fitRatio(); markPre(); lockBtn.querySelector('span').innerHTML = ic(ratio ? 'lock' : 'unlock', 22);
+    addEventListener('resize', layout); requestAnimationFrame(layout); setTimeout(layout, 60);
+  });
+}
+async function editBackdrop() {
+  const bg = slide().bg, a = bg.img && ASSETS.get(bg.img); if (!a || !a.img) return;
+  const f = await editImage(a.img, { ratio: P.w / P.h, title: 'Edit backdrop' }); if (!f) return;
+  try { const id = await importImage(f), old = bg.img; bg.img = id; bg.type = 'image'; bg.fit = 'cover'; if (P.panorama && P.panorama.on && P.panorama.src === old) P.panorama.src = id; commit(); render(); refreshThumbs(); buildPanel(); toast('Backdrop updated'); }
+  catch (e) { toast(e.message || 'Could not update the backdrop'); }
 }
 async function importImage(file) {
   if (!/^image\//.test(file.type)) throw new Error(`"${file.name}" is not an image file.`);
@@ -1751,7 +1839,7 @@ function backdropPanel() {
         act('rotate', 'Reset effects', () => { sl.fx = { vig: 0, grain: 0, str: 0 }; commit(); render(); refreshThumbs(); buildPanel(); })),
       h('p', { class: 'tinyp' }, 'These finish the whole slide and appear in your exported images.'));
   } else {
-    out.push(h('div', { class: 'row' }, act('upload', 'Choose background image', () => $('#fBg').click()), bg.img ? act('canvas', 'Make it a layer', detachBg) : null, bg.img ? act('trash', 'Remove', () => { const oldPan = P.panorama && P.panorama.src === bg.img; bg.img = null; bg.type = 'solid'; if (oldPan) P.panorama = null; commit(); render(); refreshThumbs(); buildPanel(); }, 'danger') : null),
+    out.push(h('div', { class: 'row' }, act('upload', 'Choose background image', () => $('#fBg').click()), bg.img ? act('crop', 'Edit image', editBackdrop) : null, bg.img ? act('canvas', 'Make it a layer', detachBg) : null, bg.img ? act('trash', 'Remove', () => { const oldPan = P.panorama && P.panorama.src === bg.img; bg.img = null; bg.type = 'solid'; if (oldPan) P.panorama = null; commit(); render(); refreshThumbs(); buildPanel(); }, 'danger') : null),
       bg.img ? h('div', { class: 'row' }, seg([['cover', 'Fill'], ['contain', 'Fit']], bg.fit, v => { bg.fit = v; commit(); render(); refreshThumbs(); buildPanel(); }), allBtn()) : h('p', { class: 'empty' }, 'No background image on this slide yet.'),
       bg.img ? slider('Darken', 0, 0.85, 0.05, () => bg.dim, v => { bg.dim = v; }, v => Math.round(v * 100) + '%') : null);
   }
@@ -2648,8 +2736,8 @@ $('#fImg').addEventListener('change', async e => {
   }
 });
 $('#fBg').addEventListener('change', async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try { const id = await importImage(f); const bg = slide().bg, oldBg = bg.img; bg.img = id; bg.type = 'image'; bg.fit = 'cover'; if (P.panorama && P.panorama.on && P.panorama.src === oldBg) P.panorama.src = id; commit(); render(); refreshThumbs(); S.panel = 'backdrop'; S.tab = 'Image'; buildPanel(); }
+  let f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try { f = await editImage(f, { ratio: P.w / P.h, title: 'Edit backdrop' }); if (!f) return; const id = await importImage(f); const bg = slide().bg, oldBg = bg.img; bg.img = id; bg.type = 'image'; bg.fit = 'cover'; if (P.panorama && P.panorama.on && P.panorama.src === oldBg) P.panorama.src = id; commit(); render(); refreshThumbs(); S.panel = 'backdrop'; S.tab = 'Image'; buildPanel(); }
   catch (err) { toast(err.message || 'Could not import that image'); }
 });
 $('#fFill').addEventListener('change', async e => {

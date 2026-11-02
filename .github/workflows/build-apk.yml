@@ -17,6 +17,9 @@ env:
   APP_ID: com.zongroupdev.zonstudio
   APP_NAME: Zon Studio
   VERSION_NAME_PREFIX: 1.5
+  # Raise this to the build number of any build that changes native Android parts (new plugin, permissions, icon).
+  # Phones older than that build are then asked to install the APK instead of getting a live update.
+  MIN_APK_BUILD: 0
 
 jobs:
   apk:
@@ -117,6 +120,13 @@ jobs:
       - name: Sync the web app into Android
         run: npx cap sync android
 
+      - name: Pack the live-update bundle
+        run: |
+          cd www
+          zip -qr ../zon-bundle.zip .
+          cd ..
+          ls -l zon-bundle.zip
+
       - name: Restore the original signing key
         env:
           DEBUG_KEYSTORE_BASE64: ${{ secrets.DEBUG_KEYSTORE_BASE64 }}
@@ -146,6 +156,26 @@ jobs:
           name: zon-studio-apk
           path: zon-studio-v1.5.${{ github.run_number }}.apk
           if-no-files-found: error
+
+      - name: Publish the update feed for the in-app updater
+        if: github.ref_name == 'main' || github.ref_name == 'master'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_NO: ${{ github.run_number }}
+          REPO: ${{ github.repository }}
+        run: |
+          cp "zon-studio-v1.5.$BUILD_NO.apk" zon-studio.apk
+          export APK_URL="https://github.com/$REPO/releases/download/latest/zon-studio.apk"
+          export BUNDLE_URL="https://github.com/$REPO/releases/download/latest/zon-bundle.zip"
+          node -e "const m = Number(process.env.MIN_APK_BUILD || 0); const o = { version: '1.5.' + process.env.BUILD_NO, build: Number(process.env.BUILD_NO), apk: process.env.APK_URL, bundle: process.env.BUNDLE_URL, notes: 'A new version of Zon Studio is ready.' }; if (m > 0) o.minApk = '1.5.' + m; require('fs').writeFileSync('update.json', JSON.stringify(o, null, 2) + '\n')"
+          cat update.json
+          NOTES="Newest Zon Studio build v1.5.$BUILD_NO. The app checks this release to offer updates."
+          if gh release view latest >/dev/null 2>&1; then
+            gh release upload latest zon-studio.apk zon-bundle.zip update.json --clobber
+            gh release edit latest --title "Zon Studio (latest)" --notes "$NOTES"
+          else
+            gh release create latest zon-studio.apk zon-bundle.zip update.json --target "$GITHUB_SHA" --title "Zon Studio (latest)" --notes "$NOTES"
+          fi
 
       - name: Create GitHub release
         if: github.event_name == 'workflow_dispatch' && inputs.release

@@ -20,7 +20,9 @@ fs.writeFileSync(path.join(root, 'capacitor.config.json'), JSON.stringify({
   webDir: 'www',
   backgroundColor: '#0b0c10',
   android: { backgroundColor: '#0b0c10' },
-  server: { androidScheme: 'https' }
+  server: { androidScheme: 'https' },
+  // live updates are driven by the app itself (see checkForUpdate in index.html), never by a cloud service
+  plugins: { CapacitorUpdater: { autoUpdate: false, resetWhenUpdate: true, appReadyTimeout: 20000 } }
 }, null, 2) + '\n');
 
 /* ---------- 2. Icon and splash ---------- */

@@ -191,16 +191,16 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           cp "zon-studio-v1.5.$BUILD_NO.apk" zon-studio.apk
-          export APK_URL="https://github.com/$REPO/releases/download/latest/zon-studio.apk"
-          export BUNDLE_URL="https://github.com/$REPO/releases/download/latest/zon-bundle.zip"
+          export APK_URL="https://github.com/$REPO/releases/download/app-update/zon-studio.apk"
+          export BUNDLE_URL="https://github.com/$REPO/releases/download/app-update/zon-bundle.zip"
           node -e "const m = Number(process.env.MIN_APK_BUILD || 0); const o = { version: '1.5.' + process.env.BUILD_NO, build: Number(process.env.BUILD_NO), apk: process.env.APK_URL, bundle: process.env.BUNDLE_URL, notes: 'A new version of Zon Studio is ready.' }; if (m > 0) o.minApk = '1.5.' + m; require('fs').writeFileSync('update.json', JSON.stringify(o, null, 2) + '\n')"
           cat update.json
           NOTES="Newest Zon Studio build v1.5.$BUILD_NO. The app checks this release to offer updates."
-          if gh release view latest >/dev/null 2>&1; then
-            gh release upload latest zon-studio.apk zon-bundle.zip update.json --clobber
-            gh release edit latest --title "Zon Studio (latest)" --notes "$NOTES"
+          if gh release view app-update >/dev/null 2>&1; then
+            gh release upload app-update zon-studio.apk zon-bundle.zip update.json --clobber
+            gh release edit app-update --title "Zon Studio (latest)" --notes "$NOTES"
           else
-            gh release create latest zon-studio.apk zon-bundle.zip update.json --target "$GITHUB_SHA" --title "Zon Studio (latest)" --notes "$NOTES"
+            gh release create app-update zon-studio.apk zon-bundle.zip update.json --target "$GITHUB_SHA" --title "Zon Studio (latest)" --notes "$NOTES"
           fi
 
       - name: Create GitHub release

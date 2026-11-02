@@ -522,7 +522,7 @@ function logoSVG(size = 44, anim = false) {
 }
 function runSplash() {
   const sp = $('#splash'); if (!sp) return;
-  sp.className = ''; sp.hidden = false; sp.innerHTML = '<div class="splash-in">' + logoSVG(132, false) + '<span style="color:#8d96ad;font:600 13px system-ui,sans-serif;letter-spacing:.08em">ZON STUDIO · v' + APP_VERSION + '</span></div>';
+  sp.className = ''; sp.hidden = false; sp.innerHTML = '<div class="splash-in">' + logoSVG(132, false) + '<span style="color:#8d96ad;font:600 13px system-ui,sans-serif;letter-spacing:.08em">ZON STUDIO · v' + APP_VERSION + '</span><span style="color:#34c38f;font:600 12px system-ui,sans-serif">Live update test works ✓</span></div>';
   let done = false; const end = () => { if (done) return; done = true; sp.classList.add('out'); setTimeout(() => sp.remove(), 350); };
   sp.onclick = end; setTimeout(end, 800);
 }

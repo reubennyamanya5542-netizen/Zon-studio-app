@@ -61,7 +61,7 @@ jobs:
             npx cap add android
           fi
 
-      - name: Pin an Android library to the version this build supports
+      - name: Match the Android project to what the plugins need
         run: |
           # a plugin pulls in androidx.work 2.10.x, which needs compileSdk 35; this project builds against 34
           G=android/build.gradle
@@ -81,6 +81,11 @@ jobs:
           GRADLE
           fi
           tail -14 "$G"
+          # the live-update plugin uses Google Play services, which needs Android 6.0 (API 23) or newer
+          V=android/variables.gradle
+          test -f "$V"
+          sed -i -E 's/minSdkVersion *= *[0-9]+/minSdkVersion = 23/' "$V"
+          grep -n "SdkVersion" "$V"
 
       - name: Generate Android launcher assets
         run: npx capacitor-assets generate --android

@@ -164,6 +164,9 @@ jobs:
           mkdir -p "$HOME/.android"
           printf '%s' "$DEBUG_KEYSTORE_BASE64" | base64 --decode > "$HOME/.android/debug.keystore"
           test -s "$HOME/.android/debug.keystore"
+          echo "--- keystore restored from the secret ---"
+          ls -l "$HOME/.android/debug.keystore"
+          keytool -list -v -keystore "$HOME/.android/debug.keystore" -storepass android 2>&1 | grep -E "Alias name|Creation date|SHA256|Keystore type|password|Invalid" || echo "Could not read the keystore with password 'android'"
 
       - name: Build the signed APK
         working-directory: android
@@ -174,7 +177,10 @@ jobs:
       - name: Name the APK
         env:
           BUILD_NO: ${{ github.run_number }}
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk "zon-studio-v1.5.$BUILD_NO.apk"
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk "zon-studio-v1.5.$BUILD_NO.apk"
+          echo "--- key that actually signed this APK ---"
+          keytool -printcert -jarfile "zon-studio-v1.5.$BUILD_NO.apk" | grep -E "Owner|Valid from|SHA256"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
